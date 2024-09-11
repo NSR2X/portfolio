@@ -8,7 +8,7 @@ import textwrap
 from flask_talisman import Talisman  # Add this import
 
 app = Flask(__name__)
-Talisman(app, content_security_policy=None)  # Add this line
+Talisman(app, content_security_policy=None, force_https=True)  # Add this line
 
 # Ensure data directory exists
 os.makedirs('data', exist_ok=True)
