@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="John Doe's portfolio - Full Stack Developer showcasing projects and blog posts about web development and technology.">
+    <meta name="keywords" content="full stack developer, web development, portfolio, projects, blog, technology">
+    <title>{% block title %}John Doe's Portfolio{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: var(--background-color);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .background-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        .background-gradient {
+            background: linear-gradient(120deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            filter: blur(100px);
+            transform: translateY(-50%);
+        }
+
+        .background-pattern {
+            background-image: 
+                radial-gradient(circle at 25px 25px, var(--light-gray) 2%, transparent 0%),
+                radial-gradient(circle at 75px 75px, var(--light-gray) 2%, transparent 0%);
+            background-size: 100px 100px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-effect background-gradient"></div>
+    <div class="background-effect background-pattern"></div>
+    <div class="container">
+        <header class="sidebar" id="header">
+            <nav>
+                <ul>
+                    <li><a href="{{ url_for('home') }}"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="{{ url_for('project_page') }}"><i class="fas fa-project-diagram"></i> Projects</a></li>
+                    <li><a href="{{ url_for('blog_page') }}"><i class="fas fa-blog"></i> Blog</a></li>
+                    <li><a href="{{ url_for('admin') }}"><i class="fas fa-cog"></i> Admin</a></li>
+                </ul>
+            </nav>
+        </header>
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    <footer>
+        <p>&copy; 2024 John Doe. All rights reserved.</p>
+    </footer>
+
+    <script>
+        window.addEventListener('scroll', function() {
+            var header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('shrink');
+            } else {
+                header.classList.remove('shrink');
+            }
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            const moveX = (e.clientX - window.innerWidth / 2) * 0.01;
+            const moveY = (e.clientY - window.innerHeight / 2) * 0.01;
+            document.querySelector('.background-gradient').style.transform = `translate(${moveX}px, ${moveY}px)`;
+        });
+    </script>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX');
+    </script>
+</body>
+</html>

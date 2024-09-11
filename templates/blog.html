@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Blog{% endblock %}
+
+{% block content %}
+<h1>Blog Posts</h1>
+
+<div class="blog-posts">
+    {% for post in posts %}
+    <article class="blog-card" data-post-id="{{ loop.index0 }}">
+        {% if post.image %}
+        <div class="blog-image" style="background-image: url('{{ post.image }}')" loading="lazy"></div>
+        {% endif %}
+        <div class="blog-content">
+            <h2>{{ post.title }}</h2>
+            <time datetime="{{ post.date }}">{{ post.date }}</time>
+            <p>{{ post.preview|safe }}</p>
+        </div>
+    </article>
+    {% endfor %}
+</div>
+
+<!-- Modal -->
+<div id="blogModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="modalTitle"></h2>
+        <p id="modalDate"></p>
+        <div id="modalContent"></div>
+    </div>
+</div>
+
+<script>
+    var postsData = {{ posts|tojson|safe }};
+    var blogCards = document.querySelectorAll('.blog-card');
+    var modal = document.getElementById('blogModal');
+    var closeBtn = document.querySelector('.close');
+    var modalTitle = document.getElementById('modalTitle');
+    var modalDate = document.getElementById('modalDate');
+    var modalContent = document.getElementById('modalContent');
+
+    function openModal(postId) {
+        var post = postsData[postId];
+        modalTitle.textContent = post.title;
+        modalDate.textContent = post.date;
+        modalContent.innerHTML = post.content;
+        modal.style.display = 'block';
+    }
+
+    blogCards.forEach(function(card) {
+        card.onclick = function() {
+            var postId = this.getAttribute('data-post-id');
+            openModal(postId);
+        }
+    });
+
+    closeBtn.onclick = function() {
+        modal.style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}

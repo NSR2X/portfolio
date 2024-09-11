@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Projects{% endblock %}
+
+{% block content %}
+<h1>Projects</h1>
+
+<div class="projects">
+    {% for project in projects %}
+    <div class="project-card">
+        <h2>{{ project.title }}</h2>
+        {% if project.image %}
+        <img src="{{ project.image }}" alt="{{ project.title }}" loading="lazy">
+        {% endif %}
+        <p>{{ project.description }}</p>
+        {% if project.state %}
+        <p class="project-state">State: {{ project.state }}</p>
+        {% endif %}
+        <div class="project-links">
+            {% if project.github %}
+            {{ project.github }}
+            {% endif %}
+            {% if project.website %}
+            {{ project.website }}
+            {% endif %}
+        </div>
+        {{ project.content|safe }}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

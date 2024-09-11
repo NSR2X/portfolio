@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Quantin BODIN - Lead DevSecOps | Cloud Engineer{% endblock %}
+
+{% block content %}
+<div class="resume-container">
+    <header class="resume-header">
+        <div class="profile-picture">
+            <img src="{{ url_for('static', filename='profile.jpg') }}" alt="Quantin BODIN">
+        </div>
+        <div class="resume-title">
+            <h1>Quantin BODIN</h1>
+            <h2>Lead DevSecOps | Cloud Engineer</h2>
+        </div>
+        <div class="contact-info">
+            <a href="mailto:bodin.quantin@gmail.com"><i class="fas fa-envelope"></i> bodin.quantin@gmail.com</a>
+            <a href="tel:+33651910325"><i class="fas fa-phone"></i> +33651910325</a>
+            <a href="https://github.com/NSR2X" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+            <a href="https://www.linkedin.com/in/quantin-bodin/" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn</a>
+            <a href="https://quantinbodin.me" target="_blank"><i class="fas fa-globe"></i> Website</a>
+        </div>
+    </header>
+
+    <section class="resume-section">
+        <h3>Summary</h3>
+        <p>With over 10 years of experience in IT architecture and cloud computing, I have led various IT projects while actively participating in analysis, design, and implementation. My work spans private, hybrid, and public clouds, and I have a strong focus on security, recently earning certifications including CompTIA Security+. I specialize in Cloud, DevOps, and open-source technologies, with expertise in project management. My key skills include a positive mindset, commitment, proactivity, and a caring approach to teamwork.</p>
+    </section>
+
+    <section class="resume-section">
+        <h3>Skills</h3>
+        <div class="skills-cloud">
+            {% for skill in ['Cloud Platforms', 'Containerization', 'CI/CD', 'Infrastructure as Code', 'Security Tools', 'Monitoring and Logging', 'Network Security', 'Application Security', 'Automation and Scripting', 'Configuration Management', 'Incident Response and Forensics', 'Identity and Access Management'] %}
+            <span class="skill-tag">{{ skill }}</span>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="resume-section">
+        <h3>Experience</h3>
+        
+        <div class="experience-item">
+            <h4>DevOps & Cloud Engineer</h4>
+            <p class="company">iWE, Sophia-Antipolis</p>
+            <p class="date">2023 - Present</p>
+            <ul>
+                <li>Ongoing NIST Cybersecurity Framework 2.0 implementation.</li>
+                <li>k8s all day long and still loving it.</li>
+                <li>0-Downtime production migration Mongo clusters from version 4 to 5.</li>
+                <li>Performed security audits and some massive costs optimizations.</li>
+                <li>Developed custom scripts and Helm charts.</li>
+                <li>Managed advanced roles and authorizations.</li>
+                <li>Migrated from Helm3 with production-critical deadlines and short development cycles.</li>
+                <li>Migrated Elasticsearch to Opensearch.</li>
+                <li>Opentelemetry implementation for observability.</li>
+                <li>Set up monitoring and alerting stacks (Prometheus, Alertmanager, Grafana).</li>
+                <li>Rancher clusters upgrade (not my favorite).</li>
+                <li>Implement n8n for automation.</li>
+            </ul>
+        </div>
+        <div class="experience-item">
+            <h4>DevOps & Cloud Engineer</h4>
+            <p class="company">GFI-Inetum / ProBTP, Cagnes-Sur-Mer</p>
+            <p class="date">2017 - 2023</p>
+            <ul>
+                <li>Implemented an ELK stack for monitoring clients and infrastructure.</li>
+                <li>Managed a machine park of 5000 VMs across 5 environments and 3 clusters.</li>
+                <li>Provided third-level support.</li>
+                <li>Created custom OpenStack stacks using Ansible/Heat.</li>
+                <li>Migrated OpenStack Swift Ceph storage to NetApp Storage Grid.</li>
+                <li>Automated end-to-end application mTLS with Ansible and Vault.</li>
+                <li>Developed PoC and clusters for Hashicorp Vault and Ansible clients.</li>
+                <li>Created Ansible playbooks for Consul, Vault, Nginx all clustered.</li>
+                <li>Implemented self-remediation playbooks for automatic issue resolution.</li>
+                <li>Led disaster recovery plan exercises.</li>
+            </ul>
+        </div>
+        <div class="experience-item">
+            <h4>SAP Consultant</h4>
+            <p class="company">Inventy, Sophia-Antipolis</p>
+            <p class="date">2015 - 2017</p>
+            <ul>
+                <li>Implemented an ETL for SAP-HANA.</li>
+                <li>Managed projects for automating compliance data processing.</li>
+                <li>Automated manual processes using calculation views.</li>
+                <li>Developed a remote security flaw detection agent.</li>
+                <li>Conducted infrastructure audits and pentests.</li>
+                <li>Created algorithms for business KPI calculations.</li>
+            </ul>
+        </div>
+        <div class="experience-item">
+            <h4>System Administrator</h4>
+            <p class="company">Beepeers, Valbonne</p>
+            <p class="date">2013 - 2015</p>
+            <ul>
+                <li>Migrated dedicated OVH environments to AWS.</li>
+                <li>Administered systems, backups, and databases.</li>
+                <li>Conducted cloud and system security audits.</li>
+                <li>Optimized costs and system performance.</li>
+                <li>Set up an advanced CI/CD pipeline with Jenkins and Bluejeans.</li>
+                <li>Integrated vulnerability scanners, code obfuscation, and mobile delivery (TestFlight/App Store).</li>
+            </ul>
+        </div>
+    </section>
+
+    <section class="resume-section">
+        <h3>Education</h3>
+        
+        <div class="education-item">
+            <h4>Engineer’s Degree in Information Systems and Computer Science</h4>
+            <p class="institution">SUPINFO, France</p>
+            <p class="date">2012 - 2017</p>
+        </div>
+        
+        <div class="education-item">
+            <h4>BAC PRO - Système Électronique Numérique Télécom Réseau</h4>
+            <p class="institution">High School, France</p>
+            <p class="date">2009 - 2011</p>
+        </div>
+    </section>
+
+    <section class="resume-section">
+        <h3>Certifications and Awards</h3>
+        <ul class="certifications-list">
+            <li>CompTIA Security+ SY0-601</li>
+            <li>ISC2 Certified in Cybersecurity (CC)</li>
+            <li>Google Cybersecurity Certificate</li>
+            <li>DevOps Foundation Certified (DevOps Institute)</li>
+            <li>SUPINFO Certified Trainer (Linux 1st and 2nd Year, Cloud 4th Year)</li>
+            <li>SUPINFO Certifications in Cloud Technologies (AWS, GCP, Azure)</li>
+            <li>SUPINFO Certifications in System and Web Application Security</li>
+        </ul>
+    </section>
+    
+
+    <section class="resume-section">
+        <h3>Hobbies</h3>
+        <ul class="hobbies-list">
+            <li>DJ / EDM music production</li>
+            <li>Reading</li>
+            <li>Music</li>
+            <li>MMA</li>
+            <li>Running</li>
+            <li>Family and Country</li>
+            <li>Lots of personal IT projects (24h/day ain't enough)</li>
+            <li>President of Discovery-Sounds association (Talents promotion through a web radio and app)</li>
+        </ul>
+    </section>
+</div>
+{% endblock %}
