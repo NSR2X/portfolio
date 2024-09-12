@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, abort
 import markdown
 import os
 from datetime import datetime
@@ -6,9 +6,12 @@ from werkzeug.utils import secure_filename
 from flask import Markup
 import textwrap
 from flask_talisman import Talisman  # Add this import
+from werkzeug.middleware.proxy_fix import ProxyFix
+from config import ADMIN_WHITELIST, ENABLE_ADMIN_WHITELIST
 
 app = Flask(__name__)
-Talisman(app, content_security_policy=None, force_https=True)  # Add this line
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+Talisman(app, content_security_policy=None, force_https=False)  # Apply the change
 
 # Ensure data directory exists
 os.makedirs('data', exist_ok=True)
@@ -42,6 +45,9 @@ def get_metadata_and_content(file_path):
             metadata['image'] = ''
         
         return metadata, markdown.markdown(content)
+
+def is_admin_ip(ip):
+    return ip in ADMIN_WHITELIST
 
 @app.route('/')
 def home():
@@ -77,12 +83,16 @@ def blog_page():
 
 @app.route('/admin')
 def admin():
+    if ENABLE_ADMIN_WHITELIST and not is_admin_ip(request.remote_addr):
+        abort(404)  # Return a 404 Not Found error for non-whitelisted IPs
     projects = os.listdir('data/projects')
     blog_posts = os.listdir('data/blog')
     return render_template('admin.html', projects=projects, blog_posts=blog_posts)
 
 @app.route('/add/<file_type>', methods=['POST'])
 def add_file(file_type):
+    if ENABLE_ADMIN_WHITELIST and not is_admin_ip(request.remote_addr):
+        abort(404)
     if file_type not in ['project', 'blog']:
         return redirect(url_for('admin'))
     
@@ -101,6 +111,8 @@ def add_file(file_type):
 
 @app.route('/delete/<file_type>/<path:filename>')
 def delete_file(file_type, filename):
+    if ENABLE_ADMIN_WHITELIST and not is_admin_ip(request.remote_addr):
+        abort(404)
     if file_type == 'project':
         file_path = os.path.join('data/projects', filename)
     elif file_type == 'blog':
@@ -114,6 +126,8 @@ def delete_file(file_type, filename):
 
 @app.route('/edit/<file_type>/<path:filename>', methods=['GET', 'POST'])
 def edit_file(file_type, filename):
+    if ENABLE_ADMIN_WHITELIST and not is_admin_ip(request.remote_addr):
+        abort(404)
     if file_type == 'project':
         file_path = os.path.join('data/projects', filename)
     elif file_type == 'blog':
