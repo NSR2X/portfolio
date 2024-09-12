@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="John Doe's portfolio - Full Stack Developer showcasing projects and blog posts about web development and technology.">
+    <meta name="description" content="Quantin BODIN's portfolio - Full Stack Developer showcasing projects and blog posts about web development and technology.">
     <meta name="keywords" content="full stack developer, web development, portfolio, projects, blog, technology">
-    <title>{% block title %}John Doe's Portfolio{% endblock %}</title>
+    <title>{% block title %}Quantin BODIN's Portfolio{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
     <style>
         body {
             background-color: var(--background-color);
@@ -60,7 +63,7 @@
         </main>
     </div>
     <footer>
-        <p>&copy; 2024 John Doe. All rights reserved.</p>
+        <p><center>2024 Quantin BODIN | License <a href="https://creativecommons.org/publicdomain/zero/1.0/deed.en">CC-0</a></center></p>
     </footer>
 
     <script>
@@ -80,12 +83,14 @@
         });
     </script>
 
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VW8NV829D7"></script>
     <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-XXXXXXXXXX');
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-VW8NV829D7');
     </script>
 </body>
 </html>

@@ -83,10 +83,11 @@ def blog_page():
             file_path = os.path.join(blog_dir, filename)
             metadata, content = get_metadata_and_content(file_path)
             
-            # Create a preview of the content (first 150 characters)
-            preview = textwrap.shorten(content, width=150, placeholder="...")
+            # Ensure 'image' key exists in metadata
+            if 'image' not in metadata:
+                metadata['image'] = ''
             
-            posts.append({**metadata, 'content': content, 'preview': preview, 'filename': filename})
+            posts.append({**metadata, 'content': content, 'filename': filename})
     # Ensure 'date' key exists in metadata before sorting
     posts.sort(key=lambda x: datetime.strptime(x.get('date', '1900-01-01'), '%Y-%m-%d'), reverse=True)
     return render_template('blog.html', posts=posts)
