@@ -1,5 +1,5 @@
 title: France’s Wave of Undisclosed Data Breaches
-date: 2024-09-15
+date: 2024-09-18
 description: As of 2024, supply chain attacks have become increasingly pervasive and underestimated cybersecurity threats. High-profile incidents like SolarWinds have highlighted vulnerabilities, but many organizations still fail to grasp the full scope, especially with the rise of SaaS and AI technologies. The attack surface has expanded due to interconnected cloud services and AI integration, introducing new vulnerabilities. Human factors and social engineering amplify risks. Organizations face challenges in visibility, control, and resource constraints. To build resilience, they must implement robust third-party risk management, adopt zero trust architectures, leverage AI for threat detection, and enhance collaboration between government and industry. Only through a holistic approach can organizations navigate the evolving threat landscape and secure their supply chains.
 image: /static/supply-chain-attacks.jpg
 ---

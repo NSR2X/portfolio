@@ -84,6 +84,43 @@
             const moveY = (e.clientY - window.innerHeight / 2) * 0.01;
             document.querySelector('.background-gradient').style.transform = `translate(${moveX}px, ${moveY}px)`;
         });
+
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const root = document.documentElement;
+
+        function setDarkMode(isDark) {
+            if (isDark) {
+                root.style.setProperty('--background-color', '#121212');
+                root.style.setProperty('--text-color', '#e0e0e0');
+                root.style.setProperty('--card-bg-color', '#1e1e1e');
+                root.style.setProperty('--text-light-color', '#b0b0b0');
+                root.style.setProperty('--primary-color', '#4da3ff');
+                root.style.setProperty('--secondary-color', '#8c8c8c');
+                root.style.setProperty('--border-color', '#2c2c2c');
+            } else {
+                root.style.setProperty('--background-color', '#ffffff');
+                root.style.setProperty('--text-color', '#333333');
+                root.style.setProperty('--card-bg-color', '#ffffff');
+                root.style.setProperty('--text-light-color', '#666666');
+                root.style.setProperty('--primary-color', '#007bff');
+                root.style.setProperty('--secondary-color', '#6c757d');
+                root.style.setProperty('--border-color', '#e0e0e0');
+            }
+            localStorage.setItem('darkMode', isDark);
+        }
+
+        // Check for saved dark mode preference or system preference
+        const savedDarkMode = localStorage.getItem('darkMode');
+        if (savedDarkMode !== null) {
+            setDarkMode(savedDarkMode === 'true');
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            setDarkMode(true);
+        }
+
+        darkModeToggle.addEventListener('click', () => {
+            const isDark = getComputedStyle(root).getPropertyValue('--background-color').trim() === '#121212';
+            setDarkMode(!isDark);
+        });
     </script>
     {% block extra_js %}{% endblock %}
 

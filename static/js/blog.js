@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 modalContent.innerHTML = data.content;
                 modal.style.display = 'block';
                 document.body.style.overflow = 'hidden';
-                history.pushState(null, '', `/blog/${postId}`);
+                history.replaceState(null, '', `/blog/${postId}`);
             })
             .catch(error => {
                 console.error('Error:', error);

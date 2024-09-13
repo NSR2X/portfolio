@@ -95,7 +95,8 @@ def project_page():
     return render_template('projects.html', projects=projects)
 
 @app.route('/blog')
-def blog_page():
+@app.route('/blog/<path:filename>')
+def blog_page(filename=None):
     posts = []
     blog_dir = 'data/blog'
     for filename in os.listdir(blog_dir):
@@ -103,14 +104,12 @@ def blog_page():
             file_path = os.path.join(blog_dir, filename)
             metadata, content = get_metadata_and_content(file_path)
             
-            # Ensure 'image' key exists in metadata
             if 'image' not in metadata:
                 metadata['image'] = ''
             
             posts.append({**metadata, 'content': content, 'filename': filename})
-    # Ensure 'date' key exists in metadata before sorting
     posts.sort(key=lambda x: datetime.strptime(x.get('date', '1900-01-01'), '%Y-%m-%d'), reverse=True)
-    return render_template('blog.html', posts=posts)
+    return render_template('blog.html', posts=posts, open_post=filename)
 
 @app.route('/admin')
 @auth.login_required
