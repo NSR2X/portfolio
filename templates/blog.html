@@ -24,8 +24,45 @@
             {{ post.website }}
             {% endif %}
         </div>
-        {{ post.content|safe }}
+        <div class="blog-content">
+            {{ post.content|safe }}
+        </div>
     </div>
     {% endfor %}
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .blog-card {
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .blog-content {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        word-wrap: break-word;
+    }
+
+    .blog-content img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .blog-content pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    @media (max-width: 767px) {
+        .blog-card {
+            padding: 10px;
+        }
+    }
+</style>
 {% endblock %}
