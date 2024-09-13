@@ -3,3 +3,4 @@ Werkzeug
 Markdown
 Flask-Talisman
 Flask-HTTPAuth
+Flask-Limiter

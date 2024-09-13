@@ -55,7 +55,9 @@
                     <li><a href="{{ url_for('home') }}"><i class="fas fa-home"></i> Home</a></li>
                     <li><a href="{{ url_for('project_page') }}"><i class="fas fa-project-diagram"></i> Projects</a></li>
                     <li><a href="{{ url_for('blog_page') }}"><i class="fas fa-blog"></i> Blog</a></li>
+                    {% if show_admin %}
                     <li><a href="{{ url_for('admin') }}"><i class="fas fa-cog"></i> Admin</a></li>
+                    {% endif %}
                 </ul>
             </nav>
         </header>

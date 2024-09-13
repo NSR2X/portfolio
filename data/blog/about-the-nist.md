@@ -4,11 +4,11 @@ description: While NIST CSF 2.0 promises benefits like structured risk managemen
 image: /static/about-the-nist.jpg
 ---
 
-The National Institute of Standards and Technology (NIST) recently released version 2.0 of its Cybersecurity Framework (CSF), aiming to provide a comprehensive guide for organizations of all sizes to manage and reduce cybersecurity risks \**[1](https://www.nist.gov/cyberframework)*. While the intention is noble, the reality for small and medium-sized businesses (SMBs) is far more complex and potentially problematic.
+The National Institute of Standards and Technology (NIST) recently released version 2.0 of its Cybersecurity Framework (CSF), aiming to provide a comprehensive guide for organizations of all sizes to manage and reduce cybersecurity risks. While the intention is noble, the reality for small and medium-sized businesses (SMBs) is far more complex and potentially problematic.
 
 ## The Promise of NIST CSF 2.0
 
-NIST CSF 2.0 expands its scope to include organizations of all sizes, offering comprehensive support and guidance for cybersecurity risk management \**[3](https://www.rapidfiretools.com/blog/nist-csf-2-0/)*. The framework is composed of six key functions: Govern, Identify, Protect, Detect, Respond, and Recover, each divided into categories and subcategories for a holistic approach to cybersecurity \**[2](https://www.typetec.ie/post/nist-2-0-a-comprehensive-guide-for-smbs)*.
+NIST CSF 2.0 expands its scope to include organizations of all sizes, offering comprehensive support and guidance for cybersecurity risk management. The framework is composed of six key functions: Govern, Identify, Protect, Detect, Respond, and Recover, each divided into categories and subcategories for a holistic approach to cybersecurity.
 
 For SMBs, the framework promises several benefits:
 
@@ -24,23 +24,23 @@ Despite these promises, the implementation of NIST CSF 2.0 presents significant 
 
 ### Resource Constraints
 
-Small businesses often lack the financial and human resources necessary to fully implement the framework \**[5](https://www.smith-howard.com/how-smbs-can-take-advantage-of-the-nist-cybersecurity-framework-2-0/)*. The comprehensive nature of CSF 2.0, while thorough, can be overwhelming for organizations with limited IT staff and budgets.
+Small businesses often lack the financial and human resources necessary to fully implement the framework. The comprehensive nature of CSF 2.0, while thorough, can be overwhelming for organizations with limited IT staff and budgets.
 
 ### Complexity of Implementation
 
-The framework's breadth and depth can be daunting for SMBs without dedicated cybersecurity expertise \**[4](https://www.coro.net/blog/how-nist-csf-2-0-helps-small-businesses)*. While NIST provides a small business guide, the sheer volume of information and recommendations can still be challenging to navigate and apply effectively.
+The framework's breadth and depth can be daunting for SMBs without dedicated cybersecurity expertise. While NIST provides a small business guide, the sheer volume of information and recommendations can still be challenging to navigate and apply effectively.
 
 ### Lack of Tailored Guidance
 
-Although NIST has created a special guide for small businesses, many SMBs find that the guidance is still too generic and doesn't address their specific industry or operational contexts \**[4](https://www.coro.net/blog/how-nist-csf-2-0-helps-small-businesses)*.
+Although NIST has created a special guide for small businesses, many SMBs find that the guidance is still too generic and doesn't address their specific industry or operational contexts.
 
 ### Time Investment
 
-Implementing CSF 2.0 requires a significant time investment, which can be particularly challenging for small businesses where employees often wear multiple hats \**[5](https://www.smith-howard.com/how-smbs-can-take-advantage-of-the-nist-cybersecurity-framework-2-0/)*.
+Implementing CSF 2.0 requires a significant time investment, which can be particularly challenging for small businesses where employees often wear multiple hats.
 
 ### Cost of External Expertise
 
-Many SMBs may need to rely on external consultants or cybersecurity firms to implement the framework effectively, which can be prohibitively expensive \**[4](https://www.coro.net/blog/how-nist-csf-2-0-helps-small-businesses)*.
+Many SMBs may need to rely on external consultants or cybersecurity firms to implement the framework effectively, which can be prohibitively expensive.
 
 ## The Unintended Consequences
 
@@ -70,3 +70,14 @@ It's time for a paradigm shift. We need cybersecurity professionals, industry le
 The cybersecurity community must rise to this challenge. We need to produce quality, actionable resources that SMBs can actually use to improve their security posture. Until we do, frameworks like NIST CSF 2.0, despite their good intentions, may continue to be more of a barrier than a boon for small business cybersecurity.
 
 Since everyone is responsible for cybersecurity, at iWE we aim to make our implementation as transparent as possible. Updates to come in future posts.
+
+<details>
+<summary>References</summary>
+
+1. [Coro: How NIST CSF 2.0 Helps Small Businesses](https://www.coro.net/blog/how-nist-csf-2-0-helps-small-businesses)
+2. [NIST: Cybersecurity Framework](https://www.nist.gov/cyberframework)
+3. [Rapid Fire Tools: NIST CSF 2.0](https://www.rapidfiretools.com/blog/nist-csf-2-0/)
+4. [Smith Howard: How SMBs Can Take Advantage of the NIST Cybersecurity Framework 2.0](https://www.smith-howard.com/how-smbs-can-take-advantage-of-the-nist-cybersecurity-framework-2-0/)
+5. [Typetec: NIST 2.0 - A Comprehensive Guide for SMBs](https://www.typetec.ie/post/nist-2-0-a-comprehensive-guide-for-smbs)
+
+</details>

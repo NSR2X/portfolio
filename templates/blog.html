@@ -4,31 +4,10 @@
 
 {% block content %}
 <h1 class="page-title">Blog</h1>
-<div class="blog-grid">
-    {% for post in posts %}
-    <article class="blog-card" data-post-id="{{ post.filename }}">
-        <div class="blog-card-inner">
-            {% if post.image %}
-            <div class="blog-card-image" style="background-image: url('{{ post.image }}')"></div>
-            {% endif %}
-            <div class="blog-card-content">
-                <h2 class="blog-card-title">{{ post.title }}</h2>
-                <p class="blog-card-date">{{ post.date }}</p>
-                {% if post.description %}
-                <div class="blog-card-description">
-                    {{ post.description }}
-                </div>
-                {% else %}
-                <div class="blog-card-preview">
-                    {{ post.content|striptags|truncate(150) }}
-                </div>
-                {% endif %}
-                <button class="blog-card-read-more">Read More</button>
-            </div>
-        </div>
-    </article>
-    {% endfor %}
+<div id="blog-list" class="blog-list">
+    <!-- Blog posts will be loaded here -->
 </div>
+<div id="loading" class="loading-indicator">Loading...</div>
 
 <!-- Modal -->
 <div id="articleModal" class="modal">
@@ -43,100 +22,106 @@
 
 {% block extra_css %}
 <style>
-    :root {
-        --card-bg-color: #fff;
-        --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        --card-radius: 8px;
-        --card-padding: 1.5rem;
-        --card-transition: 0.3s ease;
-        --primary-color: #007bff;
-        --primary-hover-color: #0056b3;
-        --text-color: #333;
-        --text-light-color: #666;
-        --grid-gap: 2rem;
-    }
-
     .page-title {
         text-align: center;
-        margin-bottom: 3rem;
-        font-size: clamp(2rem, 5vw, 3rem);
+        margin-bottom: 2rem;
+        font-size: 2.5rem;
     }
 
-    .blog-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: var(--grid-gap);
+    .blog-list {
+        max-width: 800px;
+        margin: 0 auto;
         padding: 0 1rem;
     }
 
     .blog-card {
-        background-color: var(--card-bg-color);
-        border-radius: var(--card-radius);
-        box-shadow: var(--card-shadow);
+        background-color: var(--card-bg-color, #fff);
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         overflow: hidden;
-        transition: transform var(--card-transition);
+        margin-bottom: 2rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
         display: flex;
         flex-direction: column;
+        min-height: 300px; /* Add a minimum height to ensure space for the button */
     }
 
     .blog-card:hover {
         transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     }
 
     .blog-card-inner {
         display: flex;
         flex-direction: column;
-        height: 100%;
+        height: 100%; /* Make sure it takes full height of the card */
     }
 
     .blog-card-image {
+        width: 100%;
         height: 200px;
         background-size: cover;
         background-position: center;
+        background-repeat: no-repeat;
+        cursor: pointer; /* Add this line */
+        transition: opacity 0.3s ease; /* Add this line */
+    }
+
+    .blog-card-image:hover {
+        opacity: 0.8; /* Add this block */
     }
 
     .blog-card-content {
-        padding: var(--card-padding);
         display: flex;
         flex-direction: column;
-        flex-grow: 1;
+        flex-grow: 1; /* Allow content to grow and push button to bottom */
+        justify-content: space-between; /* Distribute space between content and button */
+        padding: 1.5rem;
     }
 
     .blog-card-title {
-        margin: 0 0 0.5rem;
-        font-size: clamp(1.25rem, 3vw, 1.5rem);
-        color: var(--text-color);
+        margin: 0 0 1rem;
+        font-size: 1.5rem;
+        color: var(--text-color, #333);
+        cursor: pointer; /* Add this line */
+        transition: color 0.3s ease; /* Add this line */
+    }
+
+    .blog-card-title:hover {
+        color: var(--primary-color, #007bff); /* Add this block */
     }
 
     .blog-card-date {
-        color: var(--text-light-color);
+        color: var(--text-color, #333); /* Changed from light color to main text color */
         font-size: 0.9rem;
         margin-bottom: 1rem;
     }
 
-    .blog-card-description,
-    .blog-card-preview {
-        flex-grow: 1;
-        margin-bottom: 1rem;
-        font-size: clamp(0.9rem, 2vw, 1rem);
+    .blog-card-description {
+        color: #000000; /* Set to black for preview */
+        margin-bottom: 1.5rem;
+        font-size: 1rem;
         line-height: 1.6;
+        flex-grow: 1; /* Allow description to grow and push button down */
     }
 
     .blog-card-read-more {
-        align-self: flex-start;
-        background-color: var(--primary-color);
-        color: #fff;
+        display: inline-block;
+        background-color: var(--primary-color, #007bff);
+        color: #fff; /* Ensure good contrast with the button background */
         padding: 0.5rem 1rem;
-        border-radius: 4px;
+        border-radius: 5px;
         text-decoration: none;
-        transition: background-color var(--card-transition);
+        transition: background-color 0.3s ease;
         border: none;
         cursor: pointer;
         font-size: 1rem;
+        align-self: flex-start; /* Align button to the start (left) of the flex container */
+        margin-top: auto; /* Push button to the bottom of the card */
     }
 
     .blog-card-read-more:hover {
-        background-color: var(--primary-hover-color);
+        background-color: var(--primary-hover-color, #0056b3);
     }
 
     /* Modal styles */
@@ -153,91 +138,64 @@
     }
 
     .modal-content {
-        background-color: var(--card-bg-color);
+        background-color: #ffffff;
+        color: #000000;
         margin: 5% auto;
-        padding: var(--card-padding);
+        padding: 20px;
         border: 1px solid #888;
-        width: 90%;
+        width: 80%;
         max-width: 800px;
-        border-radius: var(--card-radius);
-        box-shadow: var(--card-shadow);
+        border-radius: 10px;
     }
 
     .close {
-        color: var(--text-light-color);
+        color: #000000;
         float: right;
         font-size: 28px;
         font-weight: bold;
         cursor: pointer;
-        transition: color var(--card-transition);
     }
 
     .close:hover,
     .close:focus {
-        color: var(--text-color);
+        color: #555555;
         text-decoration: none;
+        cursor: pointer;
+    }
+
+    #modalTitle {
+        color: #000000;
+    }
+
+    #modalDate {
+        color: #000000;
+    }
+
+    #modalContent {
+        color: #000000;
+    }
+
+    #modalContent a {
+        color: #0000FF;
+    }
+
+    #modalContent a:hover {
+        color: #000080;
     }
 
     @media (max-width: 768px) {
-        .blog-grid {
-            grid-template-columns: 1fr;
+        .blog-card {
+            min-height: 250px; /* Adjust minimum height for mobile if needed */
         }
 
-        .modal-content {
-            width: 95%;
-            margin: 2% auto;
-        }
-    }
-
-    @media (min-width: 769px) and (max-width: 1200px) {
-        .blog-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    @media (min-width: 1201px) {
-        .blog-grid {
-            grid-template-columns: repeat(3, 1fr);
+        .blog-card-description {
+            max-height: 100px; /* Limit description height on mobile */
+            overflow: hidden;
         }
     }
 </style>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const modal = document.getElementById('articleModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalDate = document.getElementById('modalDate');
-        const modalContent = document.getElementById('modalContent');
-        const closeBtn = document.getElementsByClassName('close')[0];
-
-        document.querySelectorAll('.blog-card-read-more').forEach(button => {
-            button.addEventListener('click', function() {
-                const postId = this.closest('.blog-card').dataset.postId;
-                fetch(`/blog/${postId}/content`)
-                    .then(response => response.json())
-                    .then(data => {
-                        modalTitle.textContent = data.title;
-                        modalDate.textContent = data.date;
-                        modalContent.innerHTML = data.content;
-                        modal.style.display = 'block';
-                        document.body.style.overflow = 'hidden'; // Prevent scrolling when modal is open
-                    });
-            });
-        });
-
-        closeBtn.onclick = function() {
-            modal.style.display = 'none';
-            document.body.style.overflow = ''; // Restore scrolling when modal is closed
-        }
-
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = 'none';
-                document.body.style.overflow = ''; // Restore scrolling when modal is closed
-            }
-        }
-    });
-</script>
+<script src="{{ url_for('static', filename='js/blog.js') }}"></script>
 {% endblock %}

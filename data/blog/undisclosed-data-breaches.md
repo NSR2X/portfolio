@@ -1,6 +1,6 @@
 title: France’s Wave of Undisclosed Data Breaches
-date: 2024-09-15
-description: Highlights the alarming trend of companies hiding data breaches, putting consumers and businesses at risk. It discusses major breaches at France Travail, Boulanger, and Cultura, where delayed disclosures exposed millions to identity theft and financial fraud. The piece stresses the importance of transparency in breach reporting, calling for businesses to prioritize customer protection over reputational concerns. It advocates for stronger disclosure practices to safeguard trust and the broader digital ecosystem.
+date: 2024-09-17
+description: A Reflexion on the alarming trend of companies hiding data breaches, putting consumers and businesses at risk. It discusses major breaches at France Travail, Boulanger, and Cultura, where delayed disclosures exposed millions to identity theft and financial fraud. The piece stresses the importance of transparency in breach reporting, calling for businesses to prioritize customer protection over reputational concerns. It advocates for stronger disclosure practices to safeguard trust and the broader digital ecosystem.
 image: /static/data-breach.png
 ---
 
@@ -90,18 +90,22 @@ This subject touches on the broader issue of **corporate responsibility** in the
 The prevalence of undisclosed data breaches is an epidemic that threatens digital security and consumer trust. It is clear that the consequences of staying silent far outweigh the perceived benefits. As consumers, we must demand greater accountability from the businesses we entrust with our personal data. As businesses, there is a growing legal and ethical obligation to report breaches promptly and openly. The time for silence is over; the era of responsible disclosure must begin. Through vigilance, transparency, and collective effort, we can build a safer, more secure digital future—one where the true value of trust is understood and protected.
 
 
-Data and sources:
-- [A Threat Actor is Allegedly Selling the Database to Boulanger](https://darkwebinformer.com/a-threat-actor-is-allegedly-selling-the-database-to-boulanger/)
-- [August 2024: Biggest Cyber Attacks, Data Breaches & Ransomware Attacks](https://www.cm-alliance.com/cybersecurity-blog/august-2024-biggest-cyber-attacks-data-breaches-ransomware-attacks)
-- [Biggest Data Breaches in France](https://www.upguard.com/blog/biggest-data-breaches-france)
-- [Boulanger Data Leak Affects 100K Customers](https://www.cybermaterial.com/boulanger-data-leak/)
-- [Boulanger, Cultura… Customers of French Brands Victims of Cyberattack](https://www.motionsonline.org/cyberattack-boulanger)
-- [Cost of a Data Breach Report](https://www.ibm.com/reports/data-breach)
-- [Data Breach Statistics](https://www.stationx.net/data-breach-statistics/)
-- [Data Breach Statistics: Facts and Figures](https://sprinto.com/blog/data-breach-statistics/)
-- [Data of 33 million people in France stolen in its largest ever cyberattack](https://www.euronews.com/next/2024/02/08/data-of-33-million-people-in-france-stolen-in-its-largest-ever-cyberattack-this-is-what-we)
-- [France Travail Suffers Major Cyberattack](https://www.bleepingcomputer.com/news/security/france-travail-data-breach)
-- [How Data Breaches Affect Consumer Trust and Brand Reputation](https://www.privacyend.com/data-breaches-affect-consumer-trust-brand-reputation/)
-- [Major Data Breaches in 2024](https://www.helpnetsecurity.com/2024/07/16/data-breaches-2024/)
-- [Millions of Users May Have Had Data Leaked in New French Government Agency Security Breach](https://www.techradar.com/news/france-travail-data-breach)
-- [The Cost of a Data Breach](https://www.ekransystem.com/en/blog/cost-of-a-data-breach)
+<details>
+<summary>Data and sources:</summary>
+
+1. [A Threat Actor is Allegedly Selling the Database to Boulanger](https://darkwebinformer.com/a-threat-actor-is-allegedly-selling-the-database-to-boulanger/)
+2. [August 2024: Biggest Cyber Attacks, Data Breaches & Ransomware Attacks](https://www.cm-alliance.com/cybersecurity-blog/august-2024-biggest-cyber-attacks-data-breaches-ransomware-attacks)
+3. [Biggest Data Breaches in France](https://www.upguard.com/blog/biggest-data-breaches-france)
+4. [Boulanger Data Leak Affects 100K Customers](https://www.cybermaterial.com/boulanger-data-leak/)
+5. [Boulanger, Cultura… Customers of French Brands Victims of Cyberattack](https://www.motionsonline.org/cyberattack-boulanger)
+6. [Cost of a Data Breach Report](https://www.ibm.com/reports/data-breach)
+7. [Data Breach Statistics](https://www.stationx.net/data-breach-statistics/)
+8. [Data Breach Statistics: Facts and Figures](https://sprinto.com/blog/data-breach-statistics/)
+9. [Data of 33 million people in France stolen in its largest ever cyberattack](https://www.euronews.com/next/2024/02/08/data-of-33-million-people-in-france-stolen-in-its-largest-ever-cyberattack-this-is-what-we)
+10. [France Travail Suffers Major Cyberattack](https://www.bleepingcomputer.com/news/security/france-travail-data-breach)
+11. [How Data Breaches Affect Consumer Trust and Brand Reputation](https://www.privacyend.com/data-breaches-affect-consumer-trust-brand-reputation/)
+12. [Major Data Breaches in 2024](https://www.helpnetsecurity.com/2024/07/16/data-breaches-2024/)
+13. [Millions of Users May Have Had Data Leaked in New French Government Agency Security Breach](https://www.techradar.com/news/france-travail-data-breach)
+14. [The Cost of a Data Breach](https://www.ekransystem.com/en/blog/cost-of-a-data-breach)
+
+</details>

@@ -9,11 +9,16 @@ from flask_talisman import Talisman
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
-from config import ADMIN_USERNAME, ADMIN_PASSWORD
+from config import ADMIN_USERNAME, ADMIN_PASSWORD, SHOW_ADMIN_LINK
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 Talisman(app, content_security_policy=None, force_https=False)
+
+# Update this line
+limiter = Limiter(key_func=get_remote_address, app=app)
 
 auth = HTTPBasicAuth()
 
@@ -68,12 +73,25 @@ def home():
 @app.route('/projects')
 def project_page():
     projects = []
+    active_projects = []
+    other_projects = []
     projects_dir = 'data/projects'
     for filename in os.listdir(projects_dir):
         if filename.endswith('.md'):
             file_path = os.path.join(projects_dir, filename)
             metadata, content = get_metadata_and_content(file_path)
-            projects.append({**metadata, 'content': content, 'filename': filename})
+            project = {**metadata, 'content': content, 'filename': filename}
+            if metadata.get('state', '').lower() == 'active':
+                active_projects.append(project)
+            else:
+                other_projects.append(project)
+    
+    # Sort active projects alphabetically by title
+    active_projects.sort(key=lambda x: x.get('title', '').lower())
+    
+    # Combine sorted active projects with other projects
+    projects = active_projects + other_projects
+    
     return render_template('projects.html', projects=projects)
 
 @app.route('/blog')
@@ -96,6 +114,7 @@ def blog_page():
 
 @app.route('/admin')
 @auth.login_required
+@limiter.limit("5 per minute")
 def admin():
     projects = os.listdir('data/projects')
     blog_posts = os.listdir('data/blog')
@@ -169,10 +188,42 @@ def blog_post_content(filename):
     if not os.path.exists(file_path):
         abort(404)
     metadata, content = get_metadata_and_content(file_path)
+    
+    # Add lazy loading to images
+    content = content.replace('<img', '<img loading="lazy"')
+    
     return jsonify({
         'title': metadata.get('title', ''),
         'date': metadata.get('date', ''),
         'content': content
+    })
+
+@app.route('/blog/posts')
+def blog_posts():
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 5))
+    blog_dir = 'data/blog'
+    all_posts = []
+    for filename in os.listdir(blog_dir):
+        if filename.endswith('.md'):
+            file_path = os.path.join(blog_dir, filename)
+            metadata, content = get_metadata_and_content(file_path)
+            all_posts.append({
+                **metadata,
+                'content': content,
+                'filename': filename,
+                'image': metadata.get('image', '')  # Ensure image is included
+            })
+    
+    all_posts.sort(key=lambda x: datetime.strptime(x.get('date', '1900-01-01'), '%Y-%m-%d'), reverse=True)
+    total_posts = len(all_posts)
+    paginated_posts = all_posts[(page-1)*per_page:page*per_page]
+    
+    return jsonify({
+        'posts': paginated_posts,
+        'total_posts': total_posts,
+        'page': page,
+        'per_page': per_page
     })
 
 @app.after_request
@@ -181,6 +232,10 @@ def add_security_headers(response):
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     response.headers['X-XSS-Protection'] = '1; mode=block'
     return response
+
+@app.context_processor
+def inject_show_admin():
+    return dict(show_admin=SHOW_ADMIN_LINK)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=False)
