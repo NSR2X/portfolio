@@ -1,10 +1,8 @@
-title: France’s Wave of Undisclosed Data Breaches
+title: Supply Chain Attacks: How AI and SaaS Are Changing the Game in 2024
 date: 2024-09-18
 description: As of 2024, supply chain attacks have become increasingly pervasive and underestimated cybersecurity threats. High-profile incidents like SolarWinds have highlighted vulnerabilities, but many organizations still fail to grasp the full scope, especially with the rise of SaaS and AI technologies. The attack surface has expanded due to interconnected cloud services and AI integration, introducing new vulnerabilities. Human factors and social engineering amplify risks. Organizations face challenges in visibility, control, and resource constraints. To build resilience, they must implement robust third-party risk management, adopt zero trust architectures, leverage AI for threat detection, and enhance collaboration between government and industry. Only through a holistic approach can organizations navigate the evolving threat landscape and secure their supply chains.
 image: /static/supply-chain-attacks.jpg
 ---
-
-# Supply Chain Attacks: How AI and SaaS Are Changing the Game in 2024
 
 As we navigate through 2024, supply chain attacks have emerged as one of the most pervasive and underestimated cybersecurity threats facing organizations globally. High-profile incidents like SolarWinds and Kaseya have shed light on the vulnerabilities inherent in our interconnected systems. Yet, many companies still fail to grasp the true scope and potential impact of these attacks, leaving critical vulnerabilities exposed and hindering efforts to build robust defenses. The rise of Software-as-a-Service (SaaS) and Managed Security Service (MSS) providers, coupled with advancements in Artificial Intelligence (AI), has further complicated the landscape, introducing both new challenges and opportunities.
 
