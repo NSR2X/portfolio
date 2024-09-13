@@ -1,9 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, abort
+from flask import Flask, render_template, request, redirect, url_for, abort, jsonify
 import markdown
 import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
-from flask import Markup
+from markupsafe import Markup
 import textwrap
 from flask_talisman import Talisman
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -53,9 +53,11 @@ def get_metadata_and_content(file_path):
         if 'website' in metadata:
             metadata['website'] = Markup(f'<a href="{metadata["website"]}" target="_blank">{website_icon}</a>')
         
-        # Ensure 'image' key exists in metadata
+        # Ensure 'image' and 'description' keys exist in metadata
         if 'image' not in metadata:
             metadata['image'] = ''
+        if 'description' not in metadata:
+            metadata['description'] = ''
         
         return metadata, markdown.markdown(content)
 
@@ -152,6 +154,26 @@ def edit_file(file_type, filename):
         content = file.read()
     
     return render_template('edit_file.html', content=content, file_type=file_type, filename=filename)
+
+@app.route('/blog/<path:filename>')
+def blog_post(filename):
+    file_path = os.path.join('data/blog', filename)
+    if not os.path.exists(file_path):
+        abort(404)
+    metadata, content = get_metadata_and_content(file_path)
+    return render_template('blog_post.html', post=metadata, content=content)
+
+@app.route('/blog/<path:filename>/content')
+def blog_post_content(filename):
+    file_path = os.path.join('data/blog', filename)
+    if not os.path.exists(file_path):
+        abort(404)
+    metadata, content = get_metadata_and_content(file_path)
+    return jsonify({
+        'title': metadata.get('title', ''),
+        'date': metadata.get('date', ''),
+        'content': content
+    })
 
 @app.after_request
 def add_security_headers(response):

@@ -43,6 +43,7 @@
             opacity: 0.5;
         }
     </style>
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <div class="background-effect background-gradient"></div>
@@ -82,6 +83,7 @@
             document.querySelector('.background-gradient').style.transform = `translate(${moveX}px, ${moveY}px)`;
         });
     </script>
+    {% block extra_js %}{% endblock %}
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-VW8NV829D7"></script>

@@ -1,5 +1,6 @@
 title: France’s Wave of Undisclosed Data Breaches
 date: 2024-09-15
+description: Highlights the alarming trend of companies hiding data breaches, putting consumers and businesses at risk. It discusses major breaches at France Travail, Boulanger, and Cultura, where delayed disclosures exposed millions to identity theft and financial fraud. The piece stresses the importance of transparency in breach reporting, calling for businesses to prioritize customer protection over reputational concerns. It advocates for stronger disclosure practices to safeguard trust and the broader digital ecosystem.
 image: /static/data-breach.png
 ---
 

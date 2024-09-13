@@ -3,66 +3,241 @@
 {% block title %}Blog{% endblock %}
 
 {% block content %}
-<h1>Blog Posts</h1>
-
-<div class="blog-posts">
+<h1 class="page-title">Blog</h1>
+<div class="blog-grid">
     {% for post in posts %}
-    <div class="blog-card">
-        <h2>{{ post.title }}</h2>
-        {% if post.image %}
-        <img src="{{ post.image }}" alt="{{ post.title }}" loading="lazy">
-        {% endif %}
-        <p>{{ post.preview|safe }}</p>
-        {% if post.date %}
-        <p class="blog-date">Date: {{ post.date }}</p>
-        {% endif %}
-        <div class="blog-links">
-            {% if post.github %}
-            {{ post.github }}
+    <article class="blog-card" data-post-id="{{ post.filename }}">
+        <div class="blog-card-inner">
+            {% if post.image %}
+            <div class="blog-card-image" style="background-image: url('{{ post.image }}')"></div>
             {% endif %}
-            {% if post.website %}
-            {{ post.website }}
-            {% endif %}
+            <div class="blog-card-content">
+                <h2 class="blog-card-title">{{ post.title }}</h2>
+                <p class="blog-card-date">{{ post.date }}</p>
+                {% if post.description %}
+                <div class="blog-card-description">
+                    {{ post.description }}
+                </div>
+                {% else %}
+                <div class="blog-card-preview">
+                    {{ post.content|striptags|truncate(150) }}
+                </div>
+                {% endif %}
+                <button class="blog-card-read-more">Read More</button>
+            </div>
         </div>
-        <div class="blog-content">
-            {{ post.content|safe }}
-        </div>
-    </div>
+    </article>
     {% endfor %}
+</div>
+
+<!-- Modal -->
+<div id="articleModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="modalTitle"></h2>
+        <p id="modalDate"></p>
+        <div id="modalContent"></div>
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_css %}
 <style>
+    :root {
+        --card-bg-color: #fff;
+        --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --card-radius: 8px;
+        --card-padding: 1.5rem;
+        --card-transition: 0.3s ease;
+        --primary-color: #007bff;
+        --primary-hover-color: #0056b3;
+        --text-color: #333;
+        --text-light-color: #666;
+        --grid-gap: 2rem;
+    }
+
+    .page-title {
+        text-align: center;
+        margin-bottom: 3rem;
+        font-size: clamp(2rem, 5vw, 3rem);
+    }
+
+    .blog-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--grid-gap);
+        padding: 0 1rem;
+    }
+
     .blog-card {
-        width: 100%;
-        max-width: 100%;
+        background-color: var(--card-bg-color);
+        border-radius: var(--card-radius);
+        box-shadow: var(--card-shadow);
         overflow: hidden;
+        transition: transform var(--card-transition);
         display: flex;
         flex-direction: column;
     }
 
-    .blog-content {
+    .blog-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .blog-card-inner {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .blog-card-image {
+        height: 200px;
+        background-size: cover;
+        background-position: center;
+    }
+
+    .blog-card-content {
+        padding: var(--card-padding);
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .blog-card-title {
+        margin: 0 0 0.5rem;
+        font-size: clamp(1.25rem, 3vw, 1.5rem);
+        color: var(--text-color);
+    }
+
+    .blog-card-date {
+        color: var(--text-light-color);
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .blog-card-description,
+    .blog-card-preview {
+        flex-grow: 1;
+        margin-bottom: 1rem;
+        font-size: clamp(0.9rem, 2vw, 1rem);
+        line-height: 1.6;
+    }
+
+    .blog-card-read-more {
+        align-self: flex-start;
+        background-color: var(--primary-color);
+        color: #fff;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        text-decoration: none;
+        transition: background-color var(--card-transition);
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+    .blog-card-read-more:hover {
+        background-color: var(--primary-hover-color);
+    }
+
+    /* Modal styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
         width: 100%;
-        max-width: 100%;
-        overflow-x: auto;
-        word-wrap: break-word;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
     }
 
-    .blog-content img {
-        max-width: 100%;
-        height: auto;
+    .modal-content {
+        background-color: var(--card-bg-color);
+        margin: 5% auto;
+        padding: var(--card-padding);
+        border: 1px solid #888;
+        width: 90%;
+        max-width: 800px;
+        border-radius: var(--card-radius);
+        box-shadow: var(--card-shadow);
     }
 
-    .blog-content pre {
-        white-space: pre-wrap;
-        word-wrap: break-word;
+    .close {
+        color: var(--text-light-color);
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: color var(--card-transition);
     }
 
-    @media (max-width: 767px) {
-        .blog-card {
-            padding: 10px;
+    .close:hover,
+    .close:focus {
+        color: var(--text-color);
+        text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+        .blog-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .modal-content {
+            width: 95%;
+            margin: 2% auto;
+        }
+    }
+
+    @media (min-width: 769px) and (max-width: 1200px) {
+        .blog-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (min-width: 1201px) {
+        .blog-grid {
+            grid-template-columns: repeat(3, 1fr);
         }
     }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('articleModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalDate = document.getElementById('modalDate');
+        const modalContent = document.getElementById('modalContent');
+        const closeBtn = document.getElementsByClassName('close')[0];
+
+        document.querySelectorAll('.blog-card-read-more').forEach(button => {
+            button.addEventListener('click', function() {
+                const postId = this.closest('.blog-card').dataset.postId;
+                fetch(`/blog/${postId}/content`)
+                    .then(response => response.json())
+                    .then(data => {
+                        modalTitle.textContent = data.title;
+                        modalDate.textContent = data.date;
+                        modalContent.innerHTML = data.content;
+                        modal.style.display = 'block';
+                        document.body.style.overflow = 'hidden'; // Prevent scrolling when modal is open
+                    });
+            });
+        });
+
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+            document.body.style.overflow = ''; // Restore scrolling when modal is closed
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = ''; // Restore scrolling when modal is closed
+            }
+        }
+    });
+</script>
 {% endblock %}
