@@ -173,14 +173,6 @@ def edit_file(file_type, filename):
     
     return render_template('edit_file.html', content=content, file_type=file_type, filename=filename)
 
-@app.route('/blog/<path:filename>')
-def blog_post(filename):
-    file_path = os.path.join('data/blog', filename)
-    if not os.path.exists(file_path):
-        abort(404)
-    metadata, content = get_metadata_and_content(file_path)
-    return render_template('blog_post.html', post=metadata, content=content)
-
 @app.route('/blog/<path:filename>/content')
 def blog_post_content(filename):
     file_path = os.path.join('data/blog', filename)

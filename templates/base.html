@@ -32,31 +32,6 @@
             overflow-x: hidden;
         }
 
-        .background-effect {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: -1;
-            opacity: 0.1;
-            pointer-events: none;
-        }
-
-        .background-gradient {
-            background: linear-gradient(120deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            filter: blur(100px);
-            transform: translateY(-50%);
-        }
-
-        .background-pattern {
-            background-image: 
-                radial-gradient(circle at 25px 25px, var(--light-gray) 2%, transparent 0%),
-                radial-gradient(circle at 75px 75px, var(--light-gray) 2%, transparent 0%);
-            background-size: 100px 100px;
-            opacity: 0.5;
-        }
-
         /* Update sidebar styles */
         .sidebar {
             background-color: var(--card-bg-color);
