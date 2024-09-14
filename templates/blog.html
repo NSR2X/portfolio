@@ -18,6 +18,9 @@
         <div id="modalContent"></div>
     </div>
 </div>
+
+<div id="copyNotification" class="copy-notification">Link copied to clipboard!</div>
+
 {% endblock %}
 
 {% block extra_css %}
@@ -83,8 +86,15 @@
         padding: 1.5rem;
     }
 
+    .blog-card-title-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
     .blog-card-title {
-        margin: 0 0 1rem;
+        margin: 0;
         font-size: 1.5rem;
         color: #333;
         cursor: pointer;
@@ -92,6 +102,16 @@
     }
 
     .blog-card-title:hover {
+        color: #E67E22;
+    }
+
+    .blog-card-copy-link {
+        cursor: pointer;
+        color: #666;
+        transition: color 0.3s ease;
+    }
+
+    .blog-card-copy-link:hover {
         color: #E67E22;
     }
 
@@ -190,6 +210,34 @@
             max-height: 100px;
             overflow: hidden;
         }
+    }
+
+    .blog-card-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+    }
+
+    /* Remove the .blog-card-share styles */
+
+    .copy-notification {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-size: 14px;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+        z-index: 1001;
+    }
+
+    .copy-notification.show {
+        opacity: 1;
     }
 </style>
 {% endblock %}

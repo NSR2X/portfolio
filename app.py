@@ -99,15 +99,15 @@ def project_page():
 def blog_page(filename=None):
     posts = []
     blog_dir = 'data/blog'
-    for filename in os.listdir(blog_dir):
-        if filename.endswith('.md'):
-            file_path = os.path.join(blog_dir, filename)
+    for file in os.listdir(blog_dir):
+        if file.endswith('.md'):
+            file_path = os.path.join(blog_dir, file)  # Use 'file' instead of 'filename'
             metadata, content = get_metadata_and_content(file_path)
             
             if 'image' not in metadata:
                 metadata['image'] = ''
             
-            posts.append({**metadata, 'content': content, 'filename': filename})
+            posts.append({**metadata, 'content': content, 'filename': file})
     posts.sort(key=lambda x: datetime.strptime(x.get('date', '1900-01-01'), '%Y-%m-%d'), reverse=True)
     return render_template('blog.html', posts=posts, open_post=filename)
 

@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let loading = false;
     let allPostsLoaded = false;
 
+    const copyNotification = document.getElementById('copyNotification');
+
     function openModal(postId) {
         fetch(`/blog/${postId}/content`)
             .then(response => {
@@ -83,7 +85,10 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="blog-card-inner">
                 ${post.image ? `<div class="blog-card-image" style="background-image: url('${post.image}')"></div>` : ''}
                 <div class="blog-card-content">
-                    <h2 class="blog-card-title">${post.title}</h2>
+                    <div class="blog-card-title-container">
+                        <h2 class="blog-card-title">${post.title}</h2>
+                        <i class="fas fa-link blog-card-copy-link" title="Copy link to post"></i>
+                    </div>
                     <p class="blog-card-date">${post.date}</p>
                     <div class="blog-card-description">
                         ${post.description || post.content.substring(0, 150) + '...'}
@@ -114,7 +119,25 @@ document.addEventListener('DOMContentLoaded', function() {
             openModal(post.filename);
         });
 
+        // Add copy link functionality
+        article.querySelector('.blog-card-copy-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            const postUrl = `${window.location.origin}/blog/${post.filename}`;
+            navigator.clipboard.writeText(postUrl).then(() => {
+                showCopyNotification();
+            }).catch(err => {
+                console.error('Failed to copy link: ', err);
+            });
+        });
+
         return article;
+    }
+
+    function showCopyNotification() {
+        copyNotification.classList.add('show');
+        setTimeout(() => {
+            copyNotification.classList.remove('show');
+        }, 2000); // Notification disappears after 2 seconds
     }
 
     closeBtn.onclick = function() {
@@ -149,4 +172,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial load
     loadPosts();
+
+    // Check if there's a specific post to open
+    const pathParts = window.location.pathname.split('/');
+    if (pathParts.length > 2 && pathParts[1] === 'blog') {
+        const postId = pathParts[2];
+        openModal(postId);
+    }
 });
