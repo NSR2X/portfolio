@@ -6,3 +6,5 @@ Flask-HTTPAuth
 Flask-Limiter
 Flask-WTF
 bleach
+python-dotenv
+mypy

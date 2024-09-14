@@ -1,45 +1,22 @@
-# Portfolio Website
+# Quantin BODIN's Portfolio
 
-A modern, responsive portfolio website built with Flask, featuring a blog, project showcase, and an admin panel for easy content management.
-
-![Portfolio Screenshot](static/portfolio-screenshot.png)
-
-## Table of Contents
-
-1. [Features](#features)
-2. [Prerequisites](#prerequisites)
-3. [Installation](#installation)
-4. [Configuration](#configuration)
-5. [Usage](#usage)
-6. [Customization](#customization)
-7. [Deployment](#deployment)
-8. [Contributing](#contributing)
-9. [License](#license)
+This is a Flask-based web application for Quantin BODIN's portfolio, showcasing projects and blog posts.
 
 ## Features
 
-
-- Display projects and blog posts
-- Responsive design for various screen sizes
-- SEO-friendly structure
-- Dark mode support
-- Admin interface for adding, editing, and deleting content
-- Markdown support for content
-- Basic authentication for admin access
-- HTTPS enforcement
-
-## Prerequisites
-
-- Python 3.7+
-- pip (Python package manager)
-- Git (optional, for cloning the repository)
+- Project showcase
+- Blog with markdown support
+- Admin interface for content management
+- Responsive design
+- Security enhancements (CSRF protection, XSS prevention, etc.)
+- SEO optimizations
 
 ## Installation
 
 1. Clone the repository:
    ```
-   git clone https://github.com/NSR2X/portfolio.git
-   cd portfolio
+   git clone https://github.com/yourusername/your-repo-name.git
+   cd your-repo-name
    ```
 
 2. Create a virtual environment and activate it:
@@ -53,9 +30,13 @@ A modern, responsive portfolio website built with Flask, featuring a blog, proje
    pip install -r requirements.txt
    ```
 
-4. Set up the configuration:
-   - Rename `config.py.example` to `config.py`
-   - Update the `ADMIN_USERNAME` and `ADMIN_PASSWORD` in `config.py`
+4. Create a `.env` file in the root directory and add the following:
+   ```
+   SECRET_KEY=your_secret_key
+   ADMIN_USERNAME=your_admin_username
+   ADMIN_PASSWORD=your_admin_password
+   SHOW_ADMIN_LINK=False
+   ```
 
 5. Run the application:
    ```
@@ -64,15 +45,17 @@ A modern, responsive portfolio website built with Flask, featuring a blog, proje
 
 ## Usage
 
-- Access the main website at `http://localhost:5001`
-- Access the admin interface at `http://localhost:5001/admin`
-  (You'll be prompted for the username and password set in `config.py`)
+- Access the website at `http://localhost:5001`
+- Admin interface is available at `/admin` (login required)
 
-## Security
+## Recent Updates
 
-- HTTPS is enforced using Flask-Talisman
-- Admin routes are protected with HTTP Basic Authentication
-- Make sure to keep your `config.py` file secure and never commit it to version control
+- Implemented CSRF protection for forms
+- Enhanced XSS prevention measures
+- Added lazy loading for images
+- Improved error handling and logging
+- Implemented proper meta tags for better SEO
+- Added type hints for better code maintainability
 
 ## Contributing
 
@@ -80,4 +63,4 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 ## License
 
-This project is open source and available under the [Creative Commons Zero v1.0 Universal (CC0) License](LICENSE).
+[CC-0](https://creativecommons.org/publicdomain/zero/1.0/deed.en)
