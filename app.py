@@ -14,6 +14,7 @@ from flask_limiter.util import get_remote_address
 from dotenv import load_dotenv
 from flask_wtf.csrf import CSRFProtect
 import bleach
+import re
 
 # Load environment variables
 load_dotenv()
@@ -89,9 +90,10 @@ def get_metadata_and_content(file_path):
         if 'description' not in metadata:
             metadata['description'] = ''
         
-        # Sanitize content
-        content = bleach.clean(content, tags=['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a'],
-                               attributes={'a': ['href', 'title']})
+        # Sanitize content and add lazy loading to images
+        content = bleach.clean(content, tags=['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'img'],
+                               attributes={'a': ['href', 'title'], 'img': ['src', 'alt', 'loading']})
+        content = content.replace('<img', '<img loading="lazy"')
         
         return metadata, markdown.markdown(content)
 
@@ -148,41 +150,46 @@ def admin():
     blog_posts = os.listdir('data/blog')
     return render_template('admin.html', projects=projects, blog_posts=blog_posts)
 
+def sanitize_filename(filename):
+    return secure_filename(re.sub(r'[^a-zA-Z0-9_.-]', '', filename))
+
 @app.route('/add/<file_type>', methods=['POST'])
 @auth.login_required
 def add_file(file_type):
     if file_type not in ['project', 'blog']:
-        return redirect(url_for('admin'))
+        abort(400, description="Invalid file type")
     
-    file = request.files['file']
-    if file and file.filename.endswith('.md'):
-        filename = secure_filename(file.filename)
-        directory = os.path.join('data', file_type + 's')
-        
-        # Ensure the directory exists
-        os.makedirs(directory, exist_ok=True)
-        
-        file_path = os.path.join(directory, filename)
-        
-        # Sanitize file content before saving
-        content = file.read().decode('utf-8')
-        sanitized_content = bleach.clean(content, tags=['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a'],
-                                         attributes={'a': ['href', 'title']})
-        
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(sanitized_content)
+    file = request.files.get('file')
+    if not file or not file.filename.endswith('.md'):
+        abort(400, description="Invalid file or file type")
+    
+    filename = sanitize_filename(file.filename)
+    if not filename:
+        abort(400, description="Invalid filename")
+    
+    directory = os.path.join('data', file_type + 's')
+    os.makedirs(directory, exist_ok=True)
+    file_path = os.path.join(directory, filename)
+    
+    content = file.read().decode('utf-8')
+    sanitized_content = bleach.clean(content, tags=['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'code', 'pre'],
+                                     attributes={'a': ['href', 'title'], 'code': ['class'], 'pre': ['class']})
+    
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(sanitized_content)
     return redirect(url_for('admin'))
 
 @app.route('/delete/<file_type>/<path:filename>')
 @auth.login_required
 def delete_file(file_type, filename):
-    if file_type == 'project':
-        file_path = os.path.join('data/projects', filename)
-    elif file_type == 'blog':
-        file_path = os.path.join('data/blog', filename)
-    else:
-        return redirect(url_for('admin'))
+    if file_type not in ['project', 'blog']:
+        abort(400, description="Invalid file type")
     
+    filename = sanitize_filename(filename)
+    if not filename:
+        abort(400, description="Invalid filename")
+    
+    file_path = os.path.join('data', file_type + 's', filename)
     if os.path.exists(file_path):
         os.remove(file_path)
     return redirect(url_for('admin'))
@@ -190,17 +197,22 @@ def delete_file(file_type, filename):
 @app.route('/edit/<file_type>/<path:filename>', methods=['GET', 'POST'])
 @auth.login_required
 def edit_file(file_type, filename):
-    if file_type == 'project':
-        file_path = os.path.join('data/projects', filename)
-    elif file_type == 'blog':
-        file_path = os.path.join('data/blog', filename)
-    else:
-        return redirect(url_for('admin'))
+    if file_type not in ['project', 'blog']:
+        abort(400, description="Invalid file type")
+    
+    filename = sanitize_filename(filename)
+    if not filename:
+        abort(400, description="Invalid filename")
+    
+    file_path = os.path.join('data', file_type + 's', filename)
+    
+    if not os.path.exists(file_path):
+        abort(404)
 
     if request.method == 'POST':
-        content = request.form['content']
-        sanitized_content = bleach.clean(content, tags=['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a'],
-                                         attributes={'a': ['href', 'title']})
+        content = request.form.get('content', '')
+        sanitized_content = bleach.clean(content, tags=['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'code', 'pre'],
+                                         attributes={'a': ['href', 'title'], 'code': ['class'], 'pre': ['class']})
         with open(file_path, 'w', encoding='utf-8') as file:
             file.write(sanitized_content)
         return redirect(url_for('admin'))
@@ -212,13 +224,14 @@ def edit_file(file_type, filename):
 
 @app.route('/blog/<path:filename>/content')
 def blog_post_content(filename):
+    filename = sanitize_filename(filename)
+    if not filename:
+        abort(400, description="Invalid filename")
+    
     file_path = os.path.join('data/blog', filename)
     if not os.path.exists(file_path):
         abort(404)
     metadata, content = get_metadata_and_content(file_path)
-    
-    # Add lazy loading to images
-    content = content.replace('<img', '<img loading="lazy"')
     
     return jsonify({
         'title': metadata.get('title', ''),
@@ -228,8 +241,9 @@ def blog_post_content(filename):
 
 @app.route('/blog/posts')
 def blog_posts():
-    page = int(request.args.get('page', 1))
-    per_page = int(request.args.get('per_page', 5))
+    page = max(1, int(request.args.get('page', 1)))
+    per_page = max(1, min(20, int(request.args.get('per_page', 5))))  # Limit per_page between 1 and 20
+    
     blog_dir = 'data/blog'
     all_posts = []
     for filename in os.listdir(blog_dir):

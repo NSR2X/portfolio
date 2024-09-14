@@ -5,7 +5,7 @@
     <h1>{{ post.title }}</h1>
     <p class="post-date">{{ post.date }}</p>
     {% if post.image %}
-    <img src="{{ post.image }}" alt="{{ post.title }}" class="post-image">
+    <img src="{{ post.image }}" alt="{{ post.title }}" class="post-image" loading="lazy">
     {% endif %}
     <div class="post-content">
         {{ content|safe }}
