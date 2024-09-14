@@ -19,6 +19,7 @@ import re
 from feedgen.feed import FeedGenerator
 from flask_sitemap import Sitemap
 import pytz
+from lxml import etree
 
 # Load environment variables
 load_dotenv()
@@ -127,6 +128,9 @@ def project_page() -> str:
 @app.route('/blog')
 @app.route('/blog/<path:filename>')
 def blog_page(filename: Optional[str] = None) -> str:
+    if filename:
+        return blog_post(filename)
+    
     posts: List[Dict[str, Any]] = []
     blog_dir = 'data/blog'
     for file in os.listdir(blog_dir):
@@ -139,7 +143,44 @@ def blog_page(filename: Optional[str] = None) -> str:
             
             posts.append({**metadata, 'content': content, 'filename': file})
     posts.sort(key=lambda x: datetime.strptime(x.get('date', '1900-01-01'), '%Y-%m-%d'), reverse=True)
-    return render_template('blog.html', posts=posts, open_post=filename)
+    return render_template('blog.html', posts=posts)
+
+@app.route('/blog/<path:filename>')
+def blog_post(filename):
+    filename = sanitize_filename(filename)
+    if not filename:
+        abort(400, description="Invalid filename")
+    
+    file_path = os.path.join('data/blog', filename)
+    if not os.path.exists(file_path):
+        abort(404)
+    
+    metadata, content = get_metadata_and_content(file_path)
+    post = {**metadata, 'content': content, 'filename': filename}
+
+    best = request.accept_mimetypes.best_match(['text/html', 'application/json', 'application/rss+xml'])
+
+    if best == 'application/json':
+        return jsonify(post)
+    elif best == 'application/rss+xml':
+        fg = FeedGenerator()
+        fg.title(post['title'])
+        fg.description(post['description'] if 'description' in post else '')
+        fg.link(href=request.url)
+        fg.language('en')
+
+        fe = fg.add_entry()
+        fe.title(post['title'])
+        fe.link(href=request.url)
+        fe.description(markdown.markdown(post['content']))  # Full content as description
+        fe.guid(request.url, permalink=True)
+        fe.pubDate(pytz.utc.localize(datetime.strptime(post['date'], '%Y-%m-%d')))
+
+        response = make_response(fg.rss_str(pretty=True))
+        response.headers.set('Content-Type', 'application/rss+xml')
+        return response
+    else:  # Default to HTML
+        return render_template('blog_post.html', post=post)
 
 @app.route('/admin')
 @auth.login_required
@@ -287,7 +328,6 @@ def rss_feed():
     fg.link(href=request.url_root)
     fg.language('en')
 
-    # Add atom:link element
     fg.link(href=url_for('rss_feed', _external=True), rel='self')
 
     posts = get_blog_posts()
@@ -296,14 +336,12 @@ def rss_feed():
     for post in posts:
         fe = fg.add_entry()
         fe.title(post['title'])
-        post_url = url_for('blog_post_content', filename=f"{post['id']}.md", _external=True)
+        post_url = url_for('blog_page', filename=f"{post['id']}.md", _external=True)
         fe.link(href=post_url)
-        fe.description(markdown.markdown(post['content'][:200] + '...'))  # First 200 characters as description
+        fe.description(markdown.markdown(post['content']))  # Full content as description
         
-        # Add guid element
         fe.guid(post_url, permalink=True)
         
-        # Ensure date is not in the future
         post_date = datetime.strptime(post['date'], '%Y-%m-%d')
         post_date_with_tz = pytz.utc.localize(post_date)
         if post_date_with_tz > current_time:
@@ -312,6 +350,13 @@ def rss_feed():
 
     response = make_response(fg.rss_str(pretty=True))
     response.headers.set('Content-Type', 'application/rss+xml')
+
+    # Remove generator information
+    xml = etree.fromstring(response.get_data())
+    for generator in xml.xpath('//generator'):
+        generator.getparent().remove(generator)
+    response.set_data(etree.tostring(xml, pretty_print=True))
+
     return response
 
 @app.after_request

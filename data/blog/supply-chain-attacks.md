@@ -138,8 +138,7 @@ Securing the global supply chain is a shared responsibility that requires ongoin
 
 ## Data and sources:
 
-<details>
-<summary>Data and sources:</summary>
+## Data and sources:
 
 1. [10xDS: 7 Ways Gen AI Can Improve Supply Chain Risk Management](https://10xds.com/blog/7-ways-gen-ai-can-improve-supply-chain-risk-management/)
 2. [AppVinTech: Challenges of AI and Machine Learning in Supply Chain Management](https://appvintech.com/challenges-of-ai-and-machine-learning-in-supply-chain-management/)
@@ -167,5 +166,3 @@ Securing the global supply chain is a shared responsibility that requires ongoin
 24. [Valence Security: 2024 State of SaaS Security Report](https://www.valencesecurity.com/lp/2024-state-of-saas-security-report)
 25. [Zscaler: New and Critical Layer to Protect Data - SaaS Supply Chain Security](https://www.zscaler.fr/blogs/product-insights/new-and-critical-layer-protect-data-saas-supply-chain-security)
 26. [Zycus: AI for Supplier Risk Management for Resilient Supply Chains](https://www.zycus.com/blog/generative-ai/ai-for-supplier-risk-management-for-resilient-supply-chains)
-
-</details>

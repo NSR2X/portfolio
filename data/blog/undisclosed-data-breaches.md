@@ -112,9 +112,7 @@ This issue touches on the broader topic of corporate responsibility in the digit
 
 The prevalence of undisclosed data breaches is an epidemic that threatens digital security and consumer trust. It is clear that the consequences of staying silent far outweigh the perceived benefits. As consumers, we must demand greater accountability from the businesses we entrust with our personal data. As businesses, there is a growing legal and ethical obligation to report breaches promptly and openly. The time for silence is over; the era of responsible disclosure must begin. Through vigilance, transparency, and collective effort, we can build a safer, more secure digital future—one where the true value of trust is understood and protected.
 
-
-<details>
-<summary>Data and sources:</summary>
+## Data and sources:
 
 1. [A Threat Actor is Allegedly Selling the Database to Boulanger](https://darkwebinformer.com/a-threat-actor-is-allegedly-selling-the-database-to-boulanger/)
 2. [August 2024: Biggest Cyber Attacks, Data Breaches & Ransomware Attacks](https://www.cm-alliance.com/cybersecurity-blog/august-2024-biggest-cyber-attacks-data-breaches-ransomware-attacks)
@@ -130,5 +128,3 @@ The prevalence of undisclosed data breaches is an epidemic that threatens digita
 12. [Major Data Breaches in 2024](https://www.helpnetsecurity.com/2024/07/16/data-breaches-2024/)
 13. [Millions of Users May Have Had Data Leaked in New French Government Agency Security Breach](https://www.techradar.com/news/france-travail-data-breach)
 14. [The Cost of a Data Breach](https://www.ekransystem.com/en/blog/cost-of-a-data-breach)
-
-</details>

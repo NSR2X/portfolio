@@ -71,13 +71,10 @@ The cybersecurity community must rise to this challenge. We need to produce qual
 
 Since everyone is responsible for cybersecurity, at iWE we aim to make our implementation as transparent as possible. Updates to come in future posts.
 
-<details>
-<summary>References</summary>
+## Data and sources:
 
 1. [Coro: How NIST CSF 2.0 Helps Small Businesses](https://www.coro.net/blog/how-nist-csf-2-0-helps-small-businesses)
 2. [NIST: Cybersecurity Framework](https://www.nist.gov/cyberframework)
 3. [Rapid Fire Tools: NIST CSF 2.0](https://www.rapidfiretools.com/blog/nist-csf-2-0/)
 4. [Smith Howard: How SMBs Can Take Advantage of the NIST Cybersecurity Framework 2.0](https://www.smith-howard.com/how-smbs-can-take-advantage-of-the-nist-cybersecurity-framework-2-0/)
 5. [Typetec: NIST 2.0 - A Comprehensive Guide for SMBs](https://www.typetec.ie/post/nist-2-0-a-comprehensive-guide-for-smbs)
-
-</details>
