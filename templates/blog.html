@@ -37,7 +37,7 @@
 
     /* Styles for individual blog post cards */
     .blog-card {
-        background-color: var(--card-bg-color, #fff);
+        background-color: #fff;
         border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         overflow: hidden;
@@ -86,17 +86,17 @@
     .blog-card-title {
         margin: 0 0 1rem;
         font-size: 1.5rem;
-        color: var(--accent-color, #8C4A3C);
+        color: #333;
         cursor: pointer;
         transition: color 0.3s ease;
     }
 
     .blog-card-title:hover {
-        color: var(--primary-color, #FF6B35);
+        color: #E67E22;
     }
 
     .blog-card-date {
-        color: var(--text-light-color, #666);
+        color: #666;
         font-size: 0.9rem;
         margin-bottom: 1rem;
     }
@@ -112,7 +112,7 @@
     /* Styles for the "Read More" button */
     .blog-card-read-more {
         display: inline-block;
-        background-color: var(--primary-color, #FF6B35);
+        background-color: #E67E22;
         color: #fff;
         padding: 0.5rem 1rem;
         border-radius: 5px;
@@ -126,7 +126,7 @@
     }
 
     .blog-card-read-more:hover {
-        background-color: var(--primary-hover-color, #E84A1C);
+        background-color: #D35400;
     }
 
     /* Styles for the modal */
@@ -143,8 +143,8 @@
     }
 
     .modal-content {
-        background-color: var(--card-bg-color, #fff);
-        color: var(--text-color, #333);
+        background-color: #fff;
+        color: #333;
         margin: 5% auto;
         padding: 20px;
         border: 1px solid #888;
@@ -154,7 +154,7 @@
     }
 
     .close {
-        color: var(--accent-color, #8C4A3C);
+        color: #A04000;
         float: right;
         font-size: 28px;
         font-weight: bold;
@@ -163,29 +163,21 @@
 
     .close:hover,
     .close:focus {
-        color: var(--primary-color, #FF6B35);
+        color: #E67E22;
         text-decoration: none;
         cursor: pointer;
     }
 
-    #modalTitle {
-        color: #000000;
-    }
-
-    #modalDate {
-        color: #000000;
-    }
-
-    #modalContent {
+    #modalTitle, #modalDate, #modalContent {
         color: #000000;
     }
 
     #modalContent a {
-        color: var(--primary-color, #FF6B35);
+        color: #E67E22;
     }
 
     #modalContent a:hover {
-        color: var(--primary-hover-color, #E84A1C);
+        color: #D35400;
     }
 
     /* Responsive design for mobile devices */

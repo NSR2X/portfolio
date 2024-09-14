@@ -85,8 +85,6 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <div class="background-effect background-gradient"></div>
-    <div class="background-effect background-pattern"></div>
     <div class="container">
         <header class="sidebar" id="header">
             <nav>
@@ -116,55 +114,6 @@
             } else {
                 header.classList.remove('shrink');
             }
-        });
-
-        document.addEventListener('mousemove', function(e) {
-            const moveX = (e.clientX - window.innerWidth / 2) * 0.01;
-            const moveY = (e.clientY - window.innerHeight / 2) * 0.01;
-            document.querySelector('.background-gradient').style.transform = `translate(${moveX}px, ${moveY}px)`;
-        });
-
-        const darkModeToggle = document.getElementById('darkModeToggle');
-        const root = document.documentElement;
-
-        function setDarkMode(isDark) {
-            if (isDark) {
-                root.style.setProperty('--background-color', '#121212');
-                root.style.setProperty('--text-color', '#e0e0e0');
-                root.style.setProperty('--card-bg-color', '#1e1e1e');
-                root.style.setProperty('--text-light-color', '#b0b0b0');
-                root.style.setProperty('--primary-color', '#F39C12');  /* Softer orange for dark mode */
-                root.style.setProperty('--primary-hover-color', '#E67E22');  /* Darker orange for hover in dark mode */
-                root.style.setProperty('--secondary-color', '#FFA07A');  /* Lighter secondary orange for dark mode */
-                root.style.setProperty('--accent-color', '#D35400');  /* Softer accent color for dark mode */
-                root.style.setProperty('--border-color', '#2c2c2c');
-                root.style.setProperty('--light-gray', '#2a2a2a');
-            } else {
-                root.style.setProperty('--background-color', '#FFF9F5');
-                root.style.setProperty('--text-color', '#333333');
-                root.style.setProperty('--card-bg-color', '#FFFFFF');
-                root.style.setProperty('--text-light-color', '#666666');
-                root.style.setProperty('--primary-color', '#E67E22');  /* Softer orange */
-                root.style.setProperty('--primary-hover-color', '#D35400');  /* Darker orange for hover */
-                root.style.setProperty('--secondary-color', '#F39C12');  /* Softer secondary orange */
-                root.style.setProperty('--accent-color', '#A04000');  /* Softer accent color */
-                root.style.setProperty('--border-color', '#E0E0E0');
-                root.style.setProperty('--light-gray', '#F5F5F5');
-            }
-            localStorage.setItem('darkMode', isDark);
-        }
-
-        // Check for saved dark mode preference or system preference
-        const savedDarkMode = localStorage.getItem('darkMode');
-        if (savedDarkMode !== null) {
-            setDarkMode(savedDarkMode === 'true');
-        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            setDarkMode(true);
-        }
-
-        darkModeToggle.addEventListener('click', () => {
-            const isDark = getComputedStyle(root).getPropertyValue('--background-color').trim() === '#121212';
-            setDarkMode(!isDark);
         });
     </script>
     {% block extra_js %}{% endblock %}
