@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, abort, jsonify
+from typing import Dict, Tuple, List, Any, Optional
 import markdown
 import os
 from datetime import datetime
@@ -53,7 +54,7 @@ users = {
 }
 
 @auth.verify_password
-def verify_password(username, password):
+def verify_password(username: str, password: str) -> Optional[str]:
     if username in users and check_password_hash(users.get(username), password):
         return username
 
@@ -62,10 +63,13 @@ os.makedirs('data', exist_ok=True)
 os.makedirs('data/projects', exist_ok=True)
 os.makedirs('data/blog', exist_ok=True)
 
-def get_metadata_and_content(file_path):
+def sanitize_filename(filename: str) -> str:
+    return secure_filename(re.sub(r'[^a-zA-Z0-9_.-]', '', filename))
+
+def get_metadata_and_content(file_path: str) -> Tuple[Dict[str, Any], str]:
     with open(file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
-        metadata = {}
+        metadata: Dict[str, Any] = {}
         content_start = 0
         for i, line in enumerate(lines):
             if line.strip() == '---':
@@ -75,7 +79,6 @@ def get_metadata_and_content(file_path):
             metadata[key] = value
         content = ''.join(lines[content_start:])
         
-        # Add clickable icons for GitHub and website links
         github_icon = '<i class="fab fa-github"></i>'
         website_icon = '<i class="fas fa-globe"></i>'
         
@@ -84,13 +87,9 @@ def get_metadata_and_content(file_path):
         if 'website' in metadata:
             metadata['website'] = Markup(f'<a href="{bleach.clean(metadata["website"], strip=True)}" target="_blank">{website_icon}</a>')
         
-        # Ensure 'image' and 'description' keys exist in metadata
-        if 'image' not in metadata:
-            metadata['image'] = ''
-        if 'description' not in metadata:
-            metadata['description'] = ''
+        metadata.setdefault('image', '')
+        metadata.setdefault('description', '')
         
-        # Sanitize content and add lazy loading to images
         content = bleach.clean(content, tags=['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'img'],
                                attributes={'a': ['href', 'title'], 'img': ['src', 'alt', 'loading']})
         content = content.replace('<img', '<img loading="lazy"')
@@ -98,14 +97,14 @@ def get_metadata_and_content(file_path):
         return metadata, markdown.markdown(content)
 
 @app.route('/')
-def home():
+def home() -> str:
     return render_template('home.html')
 
 @app.route('/projects')
-def project_page():
-    projects = []
-    active_projects = []
-    other_projects = []
+def project_page() -> str:
+    projects: List[Dict[str, Any]] = []
+    active_projects: List[Dict[str, Any]] = []
+    other_projects: List[Dict[str, Any]] = []
     projects_dir = 'data/projects'
     for filename in os.listdir(projects_dir):
         if filename.endswith('.md'):
@@ -117,22 +116,19 @@ def project_page():
             else:
                 other_projects.append(project)
     
-    # Sort active projects alphabetically by title
     active_projects.sort(key=lambda x: x.get('title', '').lower())
-    
-    # Combine sorted active projects with other projects
     projects = active_projects + other_projects
     
     return render_template('projects.html', projects=projects)
 
 @app.route('/blog')
 @app.route('/blog/<path:filename>')
-def blog_page(filename=None):
-    posts = []
+def blog_page(filename: Optional[str] = None) -> str:
+    posts: List[Dict[str, Any]] = []
     blog_dir = 'data/blog'
     for file in os.listdir(blog_dir):
         if file.endswith('.md'):
-            file_path = os.path.join(blog_dir, file)  # Use 'file' instead of 'filename'
+            file_path = os.path.join(blog_dir, file)
             metadata, content = get_metadata_and_content(file_path)
             
             if 'image' not in metadata:
@@ -145,17 +141,14 @@ def blog_page(filename=None):
 @app.route('/admin')
 @auth.login_required
 @limiter.limit("5 per minute")
-def admin():
+def admin() -> str:
     projects = os.listdir('data/projects')
     blog_posts = os.listdir('data/blog')
     return render_template('admin.html', projects=projects, blog_posts=blog_posts)
 
-def sanitize_filename(filename):
-    return secure_filename(re.sub(r'[^a-zA-Z0-9_.-]', '', filename))
-
 @app.route('/add/<file_type>', methods=['POST'])
 @auth.login_required
-def add_file(file_type):
+def add_file(file_type: str) -> Any:
     if file_type not in ['project', 'blog']:
         abort(400, description="Invalid file type")
     
@@ -181,7 +174,7 @@ def add_file(file_type):
 
 @app.route('/delete/<file_type>/<path:filename>')
 @auth.login_required
-def delete_file(file_type, filename):
+def delete_file(file_type: str, filename: str) -> Any:
     if file_type not in ['project', 'blog']:
         abort(400, description="Invalid file type")
     
@@ -196,7 +189,7 @@ def delete_file(file_type, filename):
 
 @app.route('/edit/<file_type>/<path:filename>', methods=['GET', 'POST'])
 @auth.login_required
-def edit_file(file_type, filename):
+def edit_file(file_type: str, filename: str) -> Any:
     if file_type not in ['project', 'blog']:
         abort(400, description="Invalid file type")
     
@@ -223,7 +216,7 @@ def edit_file(file_type, filename):
     return render_template('edit_file.html', content=content, file_type=file_type, filename=filename)
 
 @app.route('/blog/<path:filename>/content')
-def blog_post_content(filename):
+def blog_post_content(filename: str) -> Any:
     filename = sanitize_filename(filename)
     if not filename:
         abort(400, description="Invalid filename")
@@ -240,12 +233,12 @@ def blog_post_content(filename):
     })
 
 @app.route('/blog/posts')
-def blog_posts():
+def blog_posts() -> Any:
     page = max(1, int(request.args.get('page', 1)))
     per_page = max(1, min(20, int(request.args.get('per_page', 5))))  # Limit per_page between 1 and 20
     
     blog_dir = 'data/blog'
-    all_posts = []
+    all_posts: List[Dict[str, Any]] = []
     for filename in os.listdir(blog_dir):
         if filename.endswith('.md'):
             file_path = os.path.join(blog_dir, filename)
@@ -269,14 +262,14 @@ def blog_posts():
     })
 
 @app.after_request
-def add_security_headers(response):
+def add_security_headers(response: Any) -> Any:
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     response.headers['X-XSS-Protection'] = '1; mode=block'
     return response
 
 @app.context_processor
-def inject_show_admin():
+def inject_show_admin() -> Dict[str, bool]:
     return dict(show_admin=SHOW_ADMIN_LINK)
 
 if __name__ == '__main__':
