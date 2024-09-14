@@ -8,3 +8,6 @@ Flask-WTF
 bleach
 python-dotenv
 mypy
+feedgen
+Flask-Sitemap
+pytz

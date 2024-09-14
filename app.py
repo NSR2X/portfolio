@@ -1,8 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, abort, jsonify
+from flask import Flask, render_template, request, redirect, url_for, abort, jsonify, make_response
 from typing import Dict, Tuple, List, Any, Optional
 import markdown
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from werkzeug.utils import secure_filename
 from markupsafe import Markup
 import textwrap
@@ -16,6 +16,9 @@ from dotenv import load_dotenv
 from flask_wtf.csrf import CSRFProtect
 import bleach
 import re
+from feedgen.feed import FeedGenerator
+from flask_sitemap import Sitemap
+import pytz
 
 # Load environment variables
 load_dotenv()
@@ -261,6 +264,56 @@ def blog_posts() -> Any:
         'per_page': per_page
     })
 
+def get_blog_posts():
+    posts = []
+    blog_dir = 'data/blog'
+    for filename in os.listdir(blog_dir):
+        if filename.endswith('.md'):
+            file_path = os.path.join(blog_dir, filename)
+            metadata, content = get_metadata_and_content(file_path)
+            posts.append({
+                'id': filename[:-3],  # Remove .md extension
+                'title': metadata.get('title', ''),
+                'date': metadata.get('date', ''),
+                'content': content
+            })
+    return sorted(posts, key=lambda x: datetime.strptime(x['date'], '%Y-%m-%d'), reverse=True)
+
+@app.route('/rss')
+def rss_feed():
+    fg = FeedGenerator()
+    fg.title('Quantin BODIN\'s Blog')
+    fg.description('Full Stack Developer showcasing projects and blog posts about web development and technology.')
+    fg.link(href=request.url_root)
+    fg.language('en')
+
+    # Add atom:link element
+    fg.link(href=url_for('rss_feed', _external=True), rel='self')
+
+    posts = get_blog_posts()
+    current_time = datetime.now(timezone.utc)
+    
+    for post in posts:
+        fe = fg.add_entry()
+        fe.title(post['title'])
+        post_url = url_for('blog_post_content', filename=f"{post['id']}.md", _external=True)
+        fe.link(href=post_url)
+        fe.description(markdown.markdown(post['content'][:200] + '...'))  # First 200 characters as description
+        
+        # Add guid element
+        fe.guid(post_url, permalink=True)
+        
+        # Ensure date is not in the future
+        post_date = datetime.strptime(post['date'], '%Y-%m-%d')
+        post_date_with_tz = pytz.utc.localize(post_date)
+        if post_date_with_tz > current_time:
+            post_date_with_tz = current_time
+        fe.pubDate(post_date_with_tz)
+
+    response = make_response(fg.rss_str(pretty=True))
+    response.headers.set('Content-Type', 'application/rss+xml')
+    return response
+
 @app.after_request
 def add_security_headers(response: Any) -> Any:
     response.headers['X-Content-Type-Options'] = 'nosniff'
@@ -271,6 +324,28 @@ def add_security_headers(response: Any) -> Any:
 @app.context_processor
 def inject_show_admin() -> Dict[str, bool]:
     return dict(show_admin=SHOW_ADMIN_LINK)
+
+ext = Sitemap(app=app)
+
+@ext.register_generator
+def index():
+    # yield the root url
+    yield 'home', {}
+    
+    # yield project urls
+    projects_dir = 'data/projects'
+    for filename in os.listdir(projects_dir):
+        if filename.endswith('.md'):
+            yield 'project_page', {'filename': filename}
+    
+    # yield blog urls
+    blog_dir = 'data/blog'
+    for filename in os.listdir(blog_dir):
+        if filename.endswith('.md'):
+            yield 'blog_page', {'filename': filename}
+
+    # yield RSS feed url
+    yield 'rss_feed', {}
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=False)

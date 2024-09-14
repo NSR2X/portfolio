@@ -11,6 +11,7 @@
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+    <link rel="alternate" type="application/rss+xml" title="Quantin BODIN's Blog RSS Feed" href="{{ url_for('rss_feed') }}">
     <style>
         :root {
             --background-color: #FFF9F5;
@@ -78,7 +79,7 @@
         </main>
     </div>
     <footer>
-        <p><center>2024 Quantin BODIN | License <a href="https://creativecommons.org/publicdomain/zero/1.0/deed.en">CC-0</a></center></p>
+        <p><center>2024 Quantin BODIN | License <a href="https://creativecommons.org/publicdomain/zero/1.0/deed.en">CC-0</a> | <a href="{{ url_for('rss_feed') }}"><i class="fas fa-rss"></i> RSS Feed</a> | <a href="{{ url_for('flask_sitemap.sitemap') }}">Sitemap</a></center></p>
     </footer>
 
     <script>
