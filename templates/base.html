@@ -33,30 +33,57 @@
             overflow-x: hidden;
         }
 
-        /* Update sidebar styles */
+        /* Update sidebar styles for vertical centering */
         .sidebar {
             background-color: var(--card-bg-color);
             border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .sidebar nav ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar nav ul li {
+            margin-bottom: 15px;
         }
 
         .sidebar a {
             color: var(--text-color);
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            padding: 10px 15px;
+            transition: color 0.3s ease;
         }
 
         .sidebar a:hover {
             color: var(--primary-color);
         }
 
-        /* Update other global styles */
-        a {
+        .sidebar a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Update RSS icon styles */
+        .rss-icon {
+            font-size: 1.2em;
+            margin-right: 10px;
+        }
+
+        .sidebar .rss-link {
             color: var(--primary-color);
         }
 
-        a:hover {
+        .sidebar .rss-link:hover {
             color: var(--primary-hover-color);
         }
-
-        /* ... (rest of the existing styles) ... */
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -71,6 +98,12 @@
                     {% if show_admin %}
                     <li><a href="{{ url_for('admin') }}"><i class="fas fa-cog"></i> Admin</a></li>
                     {% endif %}
+                    <li>
+                        <a href="{{ url_for('rss_feed') }}" class="rss-link" title="Subscribe to RSS Feed">
+                            <i class="fas fa-rss rss-icon"></i>
+                            <span>RSS Feed</span>
+                        </a>
+                    </li>
                 </ul>
             </nav>
         </header>
