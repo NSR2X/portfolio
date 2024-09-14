@@ -4,3 +4,5 @@ Markdown
 Flask-Talisman
 Flask-HTTPAuth
 Flask-Limiter
+Flask-WTF
+bleach

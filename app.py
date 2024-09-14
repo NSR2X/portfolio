@@ -12,13 +12,30 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from dotenv import load_dotenv
+from flask_wtf.csrf import CSRFProtect
+import bleach
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+csrf = CSRFProtect(app)
+
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
-Talisman(app, content_security_policy=None, force_https=False)
+
+# Update Talisman configuration
+Talisman(app, 
+         content_security_policy={
+             'default-src': "'self'",
+             'script-src': ["'self'", "'unsafe-inline'", 'https://www.googletagmanager.com'],
+             'style-src': ["'self'", "'unsafe-inline'", 'https://cdnjs.cloudflare.com'],
+             'img-src': ["'self'", 'data:', 'https:'],
+             'font-src': ["'self'", 'https://cdnjs.cloudflare.com'],
+         },
+         force_https=False,
+         session_cookie_secure=True,
+         session_cookie_http_only=True)
 
 # Update this line
 limiter = Limiter(key_func=get_remote_address, app=app)
@@ -62,15 +79,19 @@ def get_metadata_and_content(file_path):
         website_icon = '<i class="fas fa-globe"></i>'
         
         if 'github' in metadata:
-            metadata['github'] = Markup(f'<a href="{metadata["github"]}" target="_blank">{github_icon}</a>')
+            metadata['github'] = Markup(f'<a href="{bleach.clean(metadata["github"], strip=True)}" target="_blank">{github_icon}</a>')
         if 'website' in metadata:
-            metadata['website'] = Markup(f'<a href="{metadata["website"]}" target="_blank">{website_icon}</a>')
+            metadata['website'] = Markup(f'<a href="{bleach.clean(metadata["website"], strip=True)}" target="_blank">{website_icon}</a>')
         
         # Ensure 'image' and 'description' keys exist in metadata
         if 'image' not in metadata:
             metadata['image'] = ''
         if 'description' not in metadata:
             metadata['description'] = ''
+        
+        # Sanitize content
+        content = bleach.clean(content, tags=['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a'],
+                               attributes={'a': ['href', 'title']})
         
         return metadata, markdown.markdown(content)
 
@@ -136,14 +157,20 @@ def add_file(file_type):
     file = request.files['file']
     if file and file.filename.endswith('.md'):
         filename = secure_filename(file.filename)
-        # Use 'projects' instead of 'project'
         directory = os.path.join('data', file_type + 's')
         
         # Ensure the directory exists
         os.makedirs(directory, exist_ok=True)
         
         file_path = os.path.join(directory, filename)
-        file.save(file_path)
+        
+        # Sanitize file content before saving
+        content = file.read().decode('utf-8')
+        sanitized_content = bleach.clean(content, tags=['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a'],
+                                         attributes={'a': ['href', 'title']})
+        
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(sanitized_content)
     return redirect(url_for('admin'))
 
 @app.route('/delete/<file_type>/<path:filename>')
@@ -172,8 +199,10 @@ def edit_file(file_type, filename):
 
     if request.method == 'POST':
         content = request.form['content']
+        sanitized_content = bleach.clean(content, tags=['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a'],
+                                         attributes={'a': ['href', 'title']})
         with open(file_path, 'w', encoding='utf-8') as file:
-            file.write(content)
+            file.write(sanitized_content)
         return redirect(url_for('admin'))
     
     with open(file_path, 'r', encoding='utf-8') as file:
