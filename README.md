@@ -9,6 +9,7 @@ Discover a powerful and versatile portfolio solution with these outstanding feat
 - **Dynamic Project Showcase**: Impress visitors with an elegant display of your work, highlighting your skills and accomplishments.
 - **Rich Content Blog**: Share your insights and expertise through a fully-featured blog with Markdown support, allowing for beautifully formatted and easy-to-write posts.
 - **Streamlined Content Management**: Take control of your content with an intuitive admin interface, making updates and additions a breeze.
+- **RSS Feed**: Stay connected with your audience through an RSS feed for your blog posts, ensuring they never miss an update.
 - **Responsive Design**: Ensure a flawless user experience across all devices with a sleek, mobile-friendly layout.
 - **Robust Security Measures**: Rest easy knowing your site is protected with advanced security features like CSRF protection and XSS prevention.
 - **SEO Optimization**: Boost your online visibility and attract more visitors with built-in SEO enhancements.
@@ -53,6 +54,10 @@ Elevate your online presence with this feature-rich portfolio solution, designed
 
 - Access the website at `http://localhost:5001`
 - Admin interface is available at `/admin` (login required)
+- Blog posts are available at `/blog`
+- Projects are available at `/projects`
+- RSS feed is available at `/rss`
+- Sitemap is available at `/sitemap.xml`
 
 ## Contributing
 
