@@ -9,9 +9,12 @@ from flask_talisman import Talisman
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
-from config import ADMIN_USERNAME, ADMIN_PASSWORD, SHOW_ADMIN_LINK
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
@@ -21,6 +24,11 @@ Talisman(app, content_security_policy=None, force_https=False)
 limiter = Limiter(key_func=get_remote_address, app=app)
 
 auth = HTTPBasicAuth()
+
+# Use environment variables
+ADMIN_USERNAME = os.getenv('ADMIN_USERNAME')
+ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
+SHOW_ADMIN_LINK = os.getenv('SHOW_ADMIN_LINK', 'False').lower() == 'true'
 
 users = {
     ADMIN_USERNAME: generate_password_hash(ADMIN_PASSWORD)
