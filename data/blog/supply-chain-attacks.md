@@ -138,8 +138,6 @@ Securing the global supply chain is a shared responsibility that requires ongoin
 
 ## Data and sources:
 
-## Data and sources:
-
 1. [10xDS: 7 Ways Gen AI Can Improve Supply Chain Risk Management](https://10xds.com/blog/7-ways-gen-ai-can-improve-supply-chain-risk-management/)
 2. [AppVinTech: Challenges of AI and Machine Learning in Supply Chain Management](https://appvintech.com/challenges-of-ai-and-machine-learning-in-supply-chain-management/)
 3. [Consumer Goods Technology: The Future of AI in the Supply Chain](https://consumergoods.com/future-ai-supply-chain)

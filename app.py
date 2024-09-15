@@ -20,6 +20,7 @@ from feedgen.feed import FeedGenerator
 from flask_sitemap import Sitemap
 import pytz
 from lxml import etree
+import logging
 
 # Load environment variables
 load_dotenv()
@@ -333,6 +334,16 @@ def rss_feed():
     posts = get_blog_posts()
     current_time = datetime.now(timezone.utc)
     
+    # Set the lastBuildDate to be the same as the most recent post's pubDate
+    if posts:
+        most_recent_post_date = datetime.strptime(posts[0]['date'], '%Y-%m-%d')
+        most_recent_post_date = pytz.utc.localize(most_recent_post_date)
+        if most_recent_post_date > current_time:
+            most_recent_post_date = current_time
+        fg.lastBuildDate(most_recent_post_date)
+    else:
+        fg.lastBuildDate(current_time)
+    
     for post in posts:
         fe = fg.add_entry()
         fe.title(post['title'])
@@ -370,58 +381,48 @@ def add_security_headers(response: Any) -> Any:
 def inject_show_admin() -> Dict[str, bool]:
     return dict(show_admin=SHOW_ADMIN_LINK)
 
-ext = Sitemap(app=app)
+@app.context_processor
+def inject_favicon():
+    return dict(favicon_url=url_for('static', filename='favicon.ico'))
 
-@ext.register_generator
-def index():
-    # yield the root url
-    yield 'home', {}
-    
-    # yield project urls
-    projects_dir = 'data/projects'
-    for filename in os.listdir(projects_dir):
-        if filename.endswith('.md'):
-            yield 'project_page', {'filename': filename}
-    
-    # yield blog urls
-    blog_dir = 'data/blog'
-    for filename in os.listdir(blog_dir):
-        if filename.endswith('.md'):
-            yield 'blog_page', {'filename': filename}
-
-    # yield RSS feed url
-    yield 'rss_feed', {}
+# Add this near the top of your file, after the imports
+logging.basicConfig(level=logging.INFO)
 
 @app.route('/sitemap.xml')
 def sitemap():
-    """Generate sitemap.xml. Makes a list of URLs and date modified."""
-    pages = []
-    ten_days_ago = datetime.now() - timedelta(days=10)
-    # Add static pages
-    for rule in app.url_map.iter_rules():
-        if "GET" in rule.methods and len(rule.arguments) == 0:
-            pages.append(
-                [f"https://{request.host}{rule.rule}", ten_days_ago.strftime("%Y-%m-%d")]
-            )
+    logging.info("Sitemap function called")
+    try:
+        pages = []
+        current_time = datetime.now().strftime("%Y-%m-%d")
+        
+        # Add static pages
+        pages.append([url_for('home', _external=True, _scheme='https'), current_time])
+        pages.append([url_for('project_page', _external=True, _scheme='https'), current_time])
+        pages.append([url_for('blog_page', _external=True, _scheme='https'), current_time])
+        
+        # Add dynamic pages
+        # Add blog posts
+        for post in get_blog_posts():
+            pages.append([url_for('blog_page', filename=f"{post['id']}.md", _external=True, _scheme='https'), current_time])
 
-    # Add dynamic pages
-    # Add blog posts
-    for post in get_blog_posts():
-        url = f"https://{request.host}/blog/{post['id']}.md"
-        modified_time = datetime.fromtimestamp(os.path.getmtime(os.path.join('data/blog', f"{post['id']}.md")))
-        pages.append([url, modified_time.strftime("%Y-%m-%d")])
+        # Add project pages
+        projects_dir = 'data/projects'
+        for filename in os.listdir(projects_dir):
+            if filename.endswith('.md'):
+                pages.append([url_for('project_page', filename=filename, _external=True, _scheme='https'), current_time])
 
-    # Add project pages
-    for project in os.listdir('data/projects'):
-        if project.endswith('.md'):
-            url = f"https://{request.host}/projects/{project}"
-            pages.append([url, ten_days_ago.strftime("%Y-%m-%d")])
+        logging.info(f"Pages to be included in sitemap: {pages}")
 
-    sitemap_xml = render_template('sitemap_template.xml', pages=pages)
-    response = make_response(sitemap_xml)
-    response.headers["Content-Type"] = "application/xml"    
+        sitemap_xml = render_template('sitemap_template.xml', pages=pages)
+        response = make_response(sitemap_xml)
+        response.headers["Content-Type"] = "application/xml"    
 
-    return response
+        logging.info(f"Sitemap generated with {len(pages)} pages")
+        logging.info(f"Sitemap content: {sitemap_xml}")
+        return response
+    except Exception as e:
+        logging.error(f"Error generating sitemap: {str(e)}")
+        return "Error generating sitemap", 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=False)
