@@ -215,7 +215,7 @@ def add_file(file_type: str) -> Any:
     
     with open(file_path, 'w', encoding='utf-8') as f:
         f.write(sanitized_content)
-    update_last_build_date()  # Update the last build date
+    update_last_build_date()
     return redirect(url_for('admin'))
 
 @app.route('/delete/<file_type>/<path:filename>')
@@ -254,7 +254,7 @@ def edit_file(file_type: str, filename: str) -> Any:
                                          attributes={'a': ['href', 'title'], 'code': ['class'], 'pre': ['class']})
         with open(file_path, 'w', encoding='utf-8') as file:
             file.write(sanitized_content)
-        update_last_build_date()  # Update the last build date
+        update_last_build_date()
         return redirect(url_for('admin'))
     
     with open(file_path, 'r', encoding='utf-8') as file:
@@ -323,12 +323,14 @@ def get_blog_posts():
             })
     return sorted(posts, key=lambda x: datetime.strptime(x['date'], '%Y-%m-%d'), reverse=True)
 
-LAST_BUILD_DATE_FILE = os.getenv('LAST_BUILD_DATE_FILE', 'last_build_date')
+LAST_BUILD_DATE_FILE = os.getenv('LAST_BUILD_DATE_FILE', 'data/blog/last_build_date')
 
 def get_last_build_date():
     if os.path.exists(LAST_BUILD_DATE_FILE):
         with open(LAST_BUILD_DATE_FILE, 'r') as f:
-            return datetime.fromisoformat(f.read().strip())
+            date_str = f.read().strip()
+            if date_str:
+                return datetime.fromisoformat(date_str)
     return datetime.now(timezone.utc)
 
 def update_last_build_date():
