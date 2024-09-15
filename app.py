@@ -334,6 +334,7 @@ def get_last_build_date():
     return datetime.now(timezone.utc)
 
 def update_last_build_date():
+    os.makedirs(os.path.dirname(LAST_BUILD_DATE_FILE), exist_ok=True)
     with open(LAST_BUILD_DATE_FILE, 'w') as f:
         f.write(datetime.now(timezone.utc).isoformat())
 
@@ -341,7 +342,7 @@ def update_last_build_date():
 def rss_feed():
     fg = FeedGenerator()
     fg.title('Quantin BODIN\'s Blog')
-    fg.description('Full Stack Developer showcasing projects and blog posts about web development and technology.')
+    fg.description('Lead DevSecOps showcasing projects and blog posts IT and technology.')
     fg.link(href=request.url_root)
     fg.language('en')
 
