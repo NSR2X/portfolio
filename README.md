@@ -39,11 +39,11 @@ Elevate your online presence with this feature-rich portfolio solution, designed
 
 4. Create a `.env` file from `.env.example` in the root directory and add the following:
    ```
-   SECRET_KEY=your_secret_key
-   ADMIN_USERNAME=your_admin_username
-   ADMIN_PASSWORD=your_admin_password
+   SECRET_KEY="your_secret_key"
+   ADMIN_USERNAME="your_admin_username"
+   ADMIN_PASSWORD="your_admin_password"
    SHOW_ADMIN_LINK=False
-   LAST_BUILD_DATE_FILE=last_build_date
+   LAST_BUILD_DATE_FILE="/data/blog/last_build_date"
    ```
 
 5. Run the application:
