@@ -215,6 +215,7 @@ def add_file(file_type: str) -> Any:
     
     with open(file_path, 'w', encoding='utf-8') as f:
         f.write(sanitized_content)
+    update_last_build_date()  # Update the last build date
     return redirect(url_for('admin'))
 
 @app.route('/delete/<file_type>/<path:filename>')
@@ -253,6 +254,7 @@ def edit_file(file_type: str, filename: str) -> Any:
                                          attributes={'a': ['href', 'title'], 'code': ['class'], 'pre': ['class']})
         with open(file_path, 'w', encoding='utf-8') as file:
             file.write(sanitized_content)
+        update_last_build_date()  # Update the last build date
         return redirect(url_for('admin'))
     
     with open(file_path, 'r', encoding='utf-8') as file:
@@ -321,6 +323,18 @@ def get_blog_posts():
             })
     return sorted(posts, key=lambda x: datetime.strptime(x['date'], '%Y-%m-%d'), reverse=True)
 
+LAST_BUILD_DATE_FILE = os.getenv('LAST_BUILD_DATE_FILE', 'last_build_date')
+
+def get_last_build_date():
+    if os.path.exists(LAST_BUILD_DATE_FILE):
+        with open(LAST_BUILD_DATE_FILE, 'r') as f:
+            return datetime.fromisoformat(f.read().strip())
+    return datetime.now(timezone.utc)
+
+def update_last_build_date():
+    with open(LAST_BUILD_DATE_FILE, 'w') as f:
+        f.write(datetime.now(timezone.utc).isoformat())
+
 @app.route('/rss')
 def rss_feed():
     fg = FeedGenerator()
@@ -332,17 +346,9 @@ def rss_feed():
     fg.link(href=url_for('rss_feed', _external=True), rel='self')
 
     posts = get_blog_posts()
-    current_time = datetime.now(timezone.utc)
+    last_build_date = get_last_build_date()
     
-    # Set the lastBuildDate to be the same as the most recent post's pubDate
-    if posts:
-        most_recent_post_date = datetime.strptime(posts[0]['date'], '%Y-%m-%d')
-        most_recent_post_date = pytz.utc.localize(most_recent_post_date)
-        if most_recent_post_date > current_time:
-            most_recent_post_date = current_time
-        fg.lastBuildDate(most_recent_post_date)
-    else:
-        fg.lastBuildDate(current_time)
+    fg.lastBuildDate(last_build_date)
     
     for post in posts:
         fe = fg.add_entry()
@@ -355,8 +361,6 @@ def rss_feed():
         
         post_date = datetime.strptime(post['date'], '%Y-%m-%d')
         post_date_with_tz = pytz.utc.localize(post_date)
-        if post_date_with_tz > current_time:
-            post_date_with_tz = current_time
         fe.pubDate(post_date_with_tz)
 
     response = make_response(fg.rss_str(pretty=True))
