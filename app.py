@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, abort, jso
 from typing import Dict, Tuple, List, Any, Optional
 import markdown
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from werkzeug.utils import secure_filename
 from markupsafe import Markup
 import textwrap
@@ -391,6 +391,37 @@ def index():
 
     # yield RSS feed url
     yield 'rss_feed', {}
+
+@app.route('/sitemap.xml')
+def sitemap():
+    """Generate sitemap.xml. Makes a list of URLs and date modified."""
+    pages = []
+    ten_days_ago = datetime.now() - timedelta(days=10)
+    # Add static pages
+    for rule in app.url_map.iter_rules():
+        if "GET" in rule.methods and len(rule.arguments) == 0:
+            pages.append(
+                [f"https://{request.host}{rule.rule}", ten_days_ago.strftime("%Y-%m-%d")]
+            )
+
+    # Add dynamic pages
+    # Add blog posts
+    for post in get_blog_posts():
+        url = f"https://{request.host}/blog/{post['id']}.md"
+        modified_time = datetime.fromtimestamp(os.path.getmtime(os.path.join('data/blog', f"{post['id']}.md")))
+        pages.append([url, modified_time.strftime("%Y-%m-%d")])
+
+    # Add project pages
+    for project in os.listdir('data/projects'):
+        if project.endswith('.md'):
+            url = f"https://{request.host}/projects/{project}"
+            pages.append([url, ten_days_ago.strftime("%Y-%m-%d")])
+
+    sitemap_xml = render_template('sitemap_template.xml', pages=pages)
+    response = make_response(sitemap_xml)
+    response.headers["Content-Type"] = "application/xml"    
+
+    return response
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=False)
