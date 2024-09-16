@@ -2,13 +2,13 @@ import os
 import re
 import logging
 import io
-import validators  # Add this import for URL validation
 from datetime import datetime, timezone, timedelta
-from typing import Dict, Tuple, List, Any, Optional
+from typing import Dict, Tuple, List, Any, Optional, Union
 
 import pytz
 import bleach
 import markdown
+import validators
 from dotenv import load_dotenv
 from lxml import etree
 from feedgen.feed import FeedGenerator
@@ -16,9 +16,9 @@ from markupsafe import Markup
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.exceptions import HTTPException
-import json  # Add this import at the top of the file with other imports
+import json
 
-from flask import Flask, render_template, request, redirect, url_for, abort, jsonify, make_response
+from flask import Flask, render_template, request, redirect, url_for, abort, jsonify, make_response, Response
 from flask_talisman import Talisman
 from flask_httpauth import HTTPBasicAuth
 from flask_limiter import Limiter
@@ -26,6 +26,16 @@ from flask_limiter.util import get_remote_address
 from flask_wtf.csrf import CSRFProtect
 from flask_sitemap import Sitemap
 from werkzeug.middleware.proxy_fix import ProxyFix
+
+# Constants
+DATA_DIR: str = 'data'
+PROJECTS_DIR: str = os.path.join(DATA_DIR, 'projects')
+BLOG_DIR: str = os.path.join(DATA_DIR, 'blog')
+MAX_FILENAME_LENGTH: int = 255
+ALLOWED_FILE_TYPES: List[str] = ['project', 'blog']
+ALLOWED_TAGS: List[str] = ['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'img']
+ALLOWED_ATTRIBUTES: Dict[str, List[str]] = {'a': ['href', 'title'], 'img': ['src', 'alt', 'loading']}
+DATE_FORMAT: str = '%Y-%m-%d'
 
 # Load environment variables
 load_dotenv()
@@ -60,32 +70,31 @@ limiter = Limiter(
 auth = HTTPBasicAuth()
 
 # Use environment variables
-ADMIN_USERNAME = os.getenv('ADMIN_USERNAME')
-ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
-SHOW_ADMIN_LINK = os.getenv('SHOW_ADMIN_LINK', 'False').lower() == 'true'
+ADMIN_USERNAME: str = os.getenv('ADMIN_USERNAME', '')
+ADMIN_PASSWORD: str = os.getenv('ADMIN_PASSWORD', '')
+SHOW_ADMIN_LINK: bool = os.getenv('SHOW_ADMIN_LINK', 'False').lower() == 'true'
 
-users = {
+users: Dict[str, str] = {
     ADMIN_USERNAME: generate_password_hash(ADMIN_PASSWORD)
 }
 
 @auth.verify_password
 def verify_password(username: str, password: str) -> Optional[str]:
-    if username in users and check_password_hash(users.get(username), password):
+    if username in users and check_password_hash(users.get(username, ''), password):
         return username
+    return None
 
 # Ensure data directory exists
-os.makedirs('data', exist_ok=True)
-os.makedirs('data/projects', exist_ok=True)
-os.makedirs('data/blog', exist_ok=True)
+os.makedirs(DATA_DIR, exist_ok=True)
+os.makedirs(PROJECTS_DIR, exist_ok=True)
+os.makedirs(BLOG_DIR, exist_ok=True)
 
 def sanitize_filename(filename: str) -> str:
-    # Limit filename length to prevent excessively long filenames
-    max_length = 255
-    filename = filename[:max_length]
+    filename = filename[:MAX_FILENAME_LENGTH]
     return secure_filename(re.sub(r'[^a-zA-Z0-9_.-]', '', filename))
 
 def validate_metadata(metadata: Dict[str, Any], file_type: str) -> bool:
-    required_fields = ['title']
+    required_fields: List[str] = ['title']
     if file_type == 'blog':
         required_fields.append('date')
     
@@ -93,14 +102,12 @@ def validate_metadata(metadata: Dict[str, Any], file_type: str) -> bool:
         if field not in metadata or not metadata[field]:
             raise ValueError(f"Missing required field: {field}")
     
-    # Validate date format if present
     if 'date' in metadata:
         try:
-            datetime.strptime(metadata['date'], '%Y-%m-%d')
+            datetime.strptime(metadata['date'], DATE_FORMAT)
         except ValueError:
-            raise ValueError("Invalid date format. Expected YYYY-MM-DD")
+            raise ValueError(f"Invalid date format. Expected {DATE_FORMAT}")
     
-    # Validate URLs if present
     for url_field in ['github', 'website']:
         if url_field in metadata and metadata[url_field]:
             if not validators.url(metadata[url_field]):
@@ -111,9 +118,9 @@ def validate_metadata(metadata: Dict[str, Any], file_type: str) -> bool:
 def get_metadata_and_content(file_path: str, file_type: str) -> Tuple[Dict[str, Any], str]:
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
-            lines = file.readlines()
+            lines: List[str] = file.readlines()
             metadata: Dict[str, Any] = {}
-            content_start = 0
+            content_start: int = 0
             for i, line in enumerate(lines):
                 if line.strip() == '---':
                     content_start = i + 1
@@ -122,16 +129,15 @@ def get_metadata_and_content(file_path: str, file_type: str) -> Tuple[Dict[str, 
                     key, value = line.strip().split(': ', 1)
                     metadata[key] = value
                 except ValueError:
-                    # Skip lines that don't conform to the expected format
                     continue
             
             if not validate_metadata(metadata, file_type):
                 raise ValueError("Invalid metadata")
             
-            content = ''.join(lines[content_start:])
+            content: str = ''.join(lines[content_start:])
             
-            github_icon = '<i class="fab fa-github"></i>'
-            website_icon = '<i class="fas fa-globe"></i>'
+            github_icon: str = '<i class="fab fa-github"></i>'
+            website_icon: str = '<i class="fas fa-globe"></i>'
             
             if 'github' in metadata:
                 metadata['github'] = Markup(f'<a href="{bleach.clean(metadata["github"], strip=True)}" target="_blank">{github_icon}</a>')
@@ -141,8 +147,7 @@ def get_metadata_and_content(file_path: str, file_type: str) -> Tuple[Dict[str, 
             metadata.setdefault('image', '')
             metadata.setdefault('description', '')
             
-            content = bleach.clean(content, tags=['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'img'],
-                                   attributes={'a': ['href', 'title'], 'img': ['src', 'alt', 'loading']})
+            content = bleach.clean(content, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES)
             content = content.replace('<img', '<img loading="lazy"')
             
             return metadata, markdown.markdown(content)
@@ -162,25 +167,24 @@ def home() -> str:
 
 @app.route('/projects')
 @limiter.limit("30 per minute")
-def project_page() -> str:
+def project_page() -> Union[str, Tuple[str, int]]:
     projects: List[Dict[str, Any]] = []
     active_projects: List[Dict[str, Any]] = []
     other_projects: List[Dict[str, Any]] = []
-    projects_dir = 'data/projects'
     try:
-        for filename in os.listdir(projects_dir):
+        for filename in os.listdir(PROJECTS_DIR):
             if filename.endswith('.md'):
-                file_path = os.path.join(projects_dir, filename)
+                file_path: str = os.path.join(PROJECTS_DIR, filename)
                 try:
                     metadata, content = get_metadata_and_content(file_path, 'project')
-                    project = {**metadata, 'content': content, 'filename': filename}
+                    project: Dict[str, Any] = {**metadata, 'content': content, 'filename': filename}
                     if metadata.get('state', '').lower() == 'active':
                         active_projects.append(project)
                     else:
                         other_projects.append(project)
                 except Exception as e:
                     app.logger.error(f"Error processing project file {filename}: {str(e)}")
-                    error_project = {
+                    error_project: Dict[str, Any] = {
                         'title': f"Error in {filename}",
                         'content': f"There was an error processing this project: {str(e)}",
                         'filename': filename,
@@ -198,97 +202,103 @@ def project_page() -> str:
 
 @app.route('/blog')
 @limiter.limit("30 per minute")
-def blog_page(filename: Optional[str] = None) -> str:
+def blog_page(filename: Optional[str] = None) -> Union[str, Tuple[str, int]]:
     if filename:
         return blog_post(filename)
     
     posts: List[Dict[str, Any]] = []
-    blog_dir = 'data/blog'
-    for file in os.listdir(blog_dir):
-        if file.endswith('.md'):
-            file_path = os.path.join(blog_dir, file)
-            metadata, content = get_metadata_and_content(file_path, 'blog')
-            
-            if 'image' not in metadata:
-                metadata['image'] = ''
-            
-            posts.append({**metadata, 'content': content, 'filename': file})
-    posts.sort(key=lambda x: datetime.strptime(x.get('date', '1900-01-01'), '%Y-%m-%d'), reverse=True)
-    return render_template('blog.html', posts=posts)
+    try:
+        for file in os.listdir(BLOG_DIR):
+            if file.endswith('.md'):
+                file_path: str = os.path.join(BLOG_DIR, file)
+                metadata, content = get_metadata_and_content(file_path, 'blog')
+                
+                if 'image' not in metadata:
+                    metadata['image'] = ''
+                
+                posts.append({**metadata, 'content': content, 'filename': file})
+        posts.sort(key=lambda x: datetime.strptime(x.get('date', '1900-01-01'), DATE_FORMAT), reverse=True)
+        return render_template('blog.html', posts=posts)
+    except Exception as e:
+        app.logger.error(f"Error accessing blog directory: {str(e)}")
+        return render_template('error.html', error="Unable to load blog posts at this time."), 500
 
 @app.route('/blog/<path:filename>')
 @limiter.limit("10 per minute")
-def blog_post(filename):
+def blog_post(filename: str) -> Union[str, Tuple[str, int]]:
     filename = sanitize_filename(filename)
     if not filename:
         abort(400, description="Invalid filename")
     
-    file_path = os.path.join('data/blog', filename)
+    file_path: str = os.path.join(BLOG_DIR, filename)
     if not os.path.exists(file_path):
         abort(404)
     
-    metadata, content = get_metadata_and_content(file_path, 'blog')
-    post = {**metadata, 'content': content, 'filename': filename}
+    try:
+        metadata, content = get_metadata_and_content(file_path, 'blog')
+        post: Dict[str, Any] = {**metadata, 'content': content, 'filename': filename}
+        
+        best: str = request.accept_mimetypes.best_match(['text/html', 'application/json', 'application/rss+xml'])
+        
+        if best == 'application/json':
+            return jsonify(post)
+        elif best == 'application/rss+xml':
+            fg = FeedGenerator()
+            fg.title(post['title'])
+            fg.description(post['description'] if 'description' in post else '')
+            fg.link(href=request.url)
+            fg.language('en')
 
-    best = request.accept_mimetypes.best_match(['text/html', 'application/json', 'application/rss+xml'])
+            fe = fg.add_entry()
+            fe.title(post['title'])
+            fe.link(href=request.url)
+            fe.description(markdown.markdown(post['content']))  # Full content as description
+            fe.guid(request.url, permalink=True)
+            fe.pubDate(pytz.utc.localize(datetime.strptime(post['date'], DATE_FORMAT)))
 
-    if best == 'application/json':
-        return jsonify(post)
-    elif best == 'application/rss+xml':
-        fg = FeedGenerator()
-        fg.title(post['title'])
-        fg.description(post['description'] if 'description' in post else '')
-        fg.link(href=request.url)
-        fg.language('en')
-
-        fe = fg.add_entry()
-        fe.title(post['title'])
-        fe.link(href=request.url)
-        fe.description(markdown.markdown(post['content']))  # Full content as description
-        fe.guid(request.url, permalink=True)
-        fe.pubDate(pytz.utc.localize(datetime.strptime(post['date'], '%Y-%m-%d')))
-
-        response = make_response(fg.rss_str(pretty=True))
-        response.headers.set('Content-Type', 'application/rss+xml')
-        return response
-    else:  # Default to HTML
-        return render_template('blog_post.html', post=post)
+            response = make_response(fg.rss_str(pretty=True))
+            response.headers.set('Content-Type', 'application/rss+xml')
+            return response
+        else:  # Default to HTML
+            return render_template('blog_post.html', post=post)
+    except Exception as e:
+        app.logger.error(f"Error processing blog post {filename}: {str(e)}")
+        return render_template('error.html', error="Unable to load blog post at this time."), 500
 
 @app.route('/admin')
 @auth.login_required
 @limiter.limit("5 per minute")
 def admin() -> str:
-    projects = os.listdir('data/projects')
-    blog_posts = os.listdir('data/blog')
+    projects: List[str] = os.listdir(PROJECTS_DIR)
+    blog_posts: List[str] = os.listdir(BLOG_DIR)
     return render_template('admin.html', projects=projects, blog_posts=blog_posts)
 
 @app.route('/add/<file_type>', methods=['POST'])
 @auth.login_required
 @limiter.limit("5 per minute")
-def add_file(file_type: str) -> Any:
-    if file_type not in ['project', 'blog']:
+def add_file(file_type: str) -> Union[str, Tuple[str, int]]:
+    if file_type not in ALLOWED_FILE_TYPES:
         abort(400, description="Invalid file type")
     
     file = request.files.get('file')
     if not file or not file.filename or not file.filename.lower().endswith('.md'):
         abort(400, description="Invalid file or file type")
     
-    filename = sanitize_filename(file.filename)
+    filename: str = sanitize_filename(file.filename)
     if not filename:
         abort(400, description="Invalid filename")
     
-    directory = os.path.join('data', file_type + 's')
+    directory: str = os.path.join(DATA_DIR, f"{file_type}s")
     os.makedirs(directory, exist_ok=True)
-    file_path = os.path.join(directory, filename)
+    file_path: str = os.path.join(directory, filename)
     
     try:
-        content = file.read().decode('utf-8')
+        content: str = file.read().decode('utf-8')
         
         # Validate metadata
         metadata, _ = get_metadata_and_content(io.StringIO(content), file_type)
         
-        sanitized_content = bleach.clean(content, tags=['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'code', 'pre'],
-                                         attributes={'a': ['href', 'title'], 'code': ['class'], 'pre': ['class']})
+        sanitized_content: str = bleach.clean(content, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES)
         
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write(sanitized_content)
@@ -306,15 +316,15 @@ def add_file(file_type: str) -> Any:
 
 @app.route('/delete/<file_type>/<path:filename>')
 @auth.login_required
-def delete_file(file_type: str, filename: str) -> Any:
-    if file_type not in ['project', 'blog']:
+def delete_file(file_type: str, filename: str) -> Union[str, Tuple[str, int]]:
+    if file_type not in ALLOWED_FILE_TYPES:
         abort(400, description="Invalid file type")
     
     filename = sanitize_filename(filename)
     if not filename:
         abort(400, description="Invalid filename")
     
-    file_path = os.path.join('data', file_type + 's', filename)
+    file_path: str = os.path.join(DATA_DIR, f"{file_type}s", filename)
     if os.path.exists(file_path):
         os.remove(file_path)
     return redirect(url_for('admin'))
@@ -322,15 +332,15 @@ def delete_file(file_type: str, filename: str) -> Any:
 @app.route('/edit/<file_type>/<path:filename>', methods=['GET', 'POST'])
 @auth.login_required
 @limiter.limit("10 per minute")
-def edit_file(file_type: str, filename: str) -> Any:
-    if file_type not in ['project', 'blog']:
+def edit_file(file_type: str, filename: str) -> Union[str, Tuple[str, int]]:
+    if file_type not in ALLOWED_FILE_TYPES:
         abort(400, description="Invalid file type")
     
     filename = sanitize_filename(filename)
     if not filename:
         abort(400, description="Invalid filename")
     
-    file_path = os.path.join('data', file_type + 's', filename)
+    file_path: str = os.path.join(DATA_DIR, f"{file_type}s", filename)
     
     if not os.path.exists(file_path):
         abort(404)
@@ -344,8 +354,7 @@ def edit_file(file_type: str, filename: str) -> Any:
         except ValueError as e:
             abort(400, description=str(e))
         
-        sanitized_content = bleach.clean(content, tags=['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'code', 'pre'],
-                                         attributes={'a': ['href', 'title'], 'code': ['class'], 'pre': ['class']})
+        sanitized_content = bleach.clean(content, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES)
         with open(file_path, 'w', encoding='utf-8') as file:
             file.write(sanitized_content)
         update_last_build_date()
@@ -362,7 +371,7 @@ def blog_post_content(filename: str) -> Any:
     if not filename:
         abort(400, description="Invalid filename")
     
-    file_path = os.path.join('data/blog', filename)
+    file_path = os.path.join(BLOG_DIR, filename)
     if not os.path.exists(file_path):
         abort(404)
     metadata, content = get_metadata_and_content(file_path, 'blog')
@@ -379,11 +388,10 @@ def blog_posts() -> Any:
     page = max(1, int(request.args.get('page', 1)))
     per_page = max(1, min(20, int(request.args.get('per_page', 5))))  # Limit per_page between 1 and 20
     
-    blog_dir = 'data/blog'
     all_posts: List[Dict[str, Any]] = []
-    for filename in os.listdir(blog_dir):
+    for filename in os.listdir(BLOG_DIR):
         if filename.endswith('.md'):
-            file_path = os.path.join(blog_dir, filename)
+            file_path = os.path.join(BLOG_DIR, filename)
             metadata, content = get_metadata_and_content(file_path, 'blog')
             all_posts.append({
                 **metadata,
@@ -392,7 +400,7 @@ def blog_posts() -> Any:
                 'image': metadata.get('image', '')  # Ensure image is included
             })
     
-    all_posts.sort(key=lambda x: datetime.strptime(x.get('date', '1900-01-01'), '%Y-%m-%d'), reverse=True)
+    all_posts.sort(key=lambda x: datetime.strptime(x.get('date', '1900-01-01'), DATE_FORMAT), reverse=True)
     total_posts = len(all_posts)
     paginated_posts = all_posts[(page-1)*per_page:page*per_page]
     
@@ -405,10 +413,9 @@ def blog_posts() -> Any:
 
 def get_blog_posts():
     posts = []
-    blog_dir = 'data/blog'
-    for filename in os.listdir(blog_dir):
+    for filename in os.listdir(BLOG_DIR):
         if filename.endswith('.md'):
-            file_path = os.path.join(blog_dir, filename)
+            file_path = os.path.join(BLOG_DIR, filename)
             metadata, content = get_metadata_and_content(file_path, 'blog')
             posts.append({
                 'id': filename[:-3],  # Remove .md extension
@@ -416,9 +423,9 @@ def get_blog_posts():
                 'date': metadata.get('date', ''),
                 'content': content
             })
-    return sorted(posts, key=lambda x: datetime.strptime(x['date'], '%Y-%m-%d'), reverse=True)
+    return sorted(posts, key=lambda x: datetime.strptime(x['date'], DATE_FORMAT), reverse=True)
 
-LAST_BUILD_DATE_FILE = os.getenv('LAST_BUILD_DATE_FILE', 'data/blog/last_build_date')
+LAST_BUILD_DATE_FILE = os.getenv('LAST_BUILD_DATE_FILE', os.path.join(BLOG_DIR, 'last_build_date'))
 
 def get_last_build_date():
     if os.path.exists(LAST_BUILD_DATE_FILE):
