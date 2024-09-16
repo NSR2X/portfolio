@@ -2,7 +2,7 @@ import os
 import re
 import logging
 import io
-import validators  # Add this import for URL validation
+import validators
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Tuple, List, Any, Optional, Union
 
@@ -16,7 +16,7 @@ from markupsafe import Markup, escape
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.exceptions import HTTPException
-import json  # Add this import at the top of the file with other imports
+import json
 
 from flask import Flask, render_template, request, redirect, url_for, abort, jsonify, make_response
 from flask_talisman import Talisman
@@ -27,7 +27,8 @@ from flask_wtf.csrf import CSRFProtect
 from flask_sitemap import Sitemap
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_wtf import FlaskForm
-from wtforms import TextAreaField
+from flask_wtf.file import FileField, FileRequired, FileAllowed
+from wtforms import TextAreaField, SubmitField
 
 # Constants
 DATA_DIR: str = 'data'
@@ -152,7 +153,7 @@ def get_metadata_and_content(file_path: str, file_type: str) -> Tuple[Dict[str, 
             content = bleach.clean(content, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES)
             content = content.replace('<img', '<img loading="lazy"')
             
-            return metadata, markdown.markdown(content)
+            return metadata, Markup(markdown.markdown(content))
     except FileNotFoundError:
         app.logger.error(f"File not found: {file_path}")
         raise
@@ -267,68 +268,81 @@ def blog_post(filename: str) -> Union[str, Tuple[str, int]]:
         app.logger.error(f"Error processing blog post {filename}: {str(e)}")
         return render_template('error.html', error="Unable to load blog post at this time."), 500
 
-@app.route('/admin')
+@app.route('/admin', methods=['GET', 'POST'])
 @auth.login_required
 @limiter.limit("5 per minute")
 def admin() -> str:
     projects: List[str] = os.listdir(PROJECTS_DIR)
     blog_posts: List[str] = os.listdir(BLOG_DIR)
-    return render_template('admin.html', projects=projects, blog_posts=blog_posts)
+    form = AddFileForm()  # Create an instance of the form
+    return render_template('admin.html', projects=projects, blog_posts=blog_posts, form=form)
 
-@app.route('/add/<file_type>', methods=['POST'])
+class AddFileForm(FlaskForm):
+    file = FileField('File', validators=[FileRequired(), FileAllowed(['md'], 'Markdown files only!')])
+    submit = SubmitField('Upload')
+
+@app.route('/add/<file_type>', methods=['GET', 'POST'])
 @auth.login_required
 @limiter.limit("5 per minute")
 def add_file(file_type: str) -> Union[str, Tuple[str, int]]:
     if file_type not in ALLOWED_FILE_TYPES:
         abort(400, description="Invalid file type")
     
-    file = request.files.get('file')
-    if not file or not file.filename or not file.filename.lower().endswith('.md'):
-        abort(400, description="Invalid file or file type")
+    form = AddFileForm()
     
-    filename: str = sanitize_filename(file.filename)
-    if not filename:
-        abort(400, description="Invalid filename")
+    if form.validate_on_submit():
+        file = form.file.data
+        filename: str = sanitize_filename(file.filename)
+        if not filename:
+            abort(400, description="Invalid filename")
+        
+        directory: str = PROJECTS_DIR if file_type == 'project' else BLOG_DIR
+        os.makedirs(directory, exist_ok=True)
+        file_path: str = os.path.join(directory, filename)
+        
+        try:
+            content: str = file.read().decode('utf-8')
+            
+            # Validate metadata
+            lines = content.split('\n')
+            metadata = {}
+            content_start = 0
+            for i, line in enumerate(lines):
+                if line.strip() == '---':
+                    content_start = i + 1
+                    break
+                try:
+                    key, value = line.strip().split(': ', 1)
+                    metadata[key] = value
+                except ValueError:
+                    continue
+            
+            if not validate_metadata(metadata, file_type):
+                raise ValueError("Invalid metadata")
+            
+            sanitized_content: str = bleach.clean(content, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES)
+            
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(sanitized_content)
+            
+            if file_type == 'blog':
+                update_last_build_date()
+            
+            return redirect(url_for('admin'))
+        except ValueError as e:
+            app.logger.error(f"Validation error when adding {file_type} file: {str(e)}")
+            abort(400, description=str(e))
+        except IOError as e:
+            app.logger.error(f"IO error when adding {file_type} file: {str(e)}")
+            abort(500, description="Error saving file")
+        except Exception as e:
+            app.logger.error(f"Unexpected error when adding {file_type} file: {str(e)}")
+            abort(500, description="Unexpected error occurred")
     
-    directory: str = os.path.join(DATA_DIR, f"{file_type}s")
-    os.makedirs(directory, exist_ok=True)
-    file_path: str = os.path.join(directory, filename)
-    
-    try:
-        content: str = file.read().decode('utf-8')
-        
-        # Validate metadata
-        lines = content.split('\n')
-        metadata = {}
-        content_start = 0
-        for i, line in enumerate(lines):
-            if line.strip() == '---':
-                content_start = i + 1
-                break
-            try:
-                key, value = line.strip().split(': ', 1)
-                metadata[key] = value
-            except ValueError:
-                continue
-        
-        if not validate_metadata(metadata, file_type):
-            raise ValueError("Invalid metadata")
-        
-        sanitized_content: str = bleach.clean(content, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES)
-        
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(sanitized_content)
-        update_last_build_date()
-        return redirect(url_for('admin'))
-    except ValueError as e:
-        app.logger.error(f"Validation error when adding {file_type} file: {str(e)}")
-        abort(400, description=str(e))
-    except IOError as e:
-        app.logger.error(f"IO error when adding {file_type} file: {str(e)}")
-        abort(500, description="Error saving file")
-    except Exception as e:
-        app.logger.error(f"Unexpected error when adding {file_type} file: {str(e)}")
-        abort(500, description="Unexpected error occurred")
+    # If it's a GET request or form validation failed, render the admin page
+    projects: List[str] = os.listdir(PROJECTS_DIR)
+    blog_posts: List[str] = os.listdir(BLOG_DIR)
+    return render_template('admin.html', projects=projects, blog_posts=blog_posts, form=form)
 
 @app.route('/delete/<file_type>/<path:filename>')
 @auth.login_required
@@ -340,7 +354,8 @@ def delete_file(file_type: str, filename: str) -> Union[str, Tuple[str, int]]:
     if not filename:
         abort(400, description="Invalid filename")
     
-    file_path: str = os.path.join(DATA_DIR, f"{file_type}s", filename)
+    directory: str = PROJECTS_DIR if file_type == 'project' else BLOG_DIR
+    file_path: str = os.path.join(directory, filename)
     if os.path.exists(file_path):
         os.remove(file_path)
     return redirect(url_for('admin'))
@@ -360,7 +375,8 @@ def edit_file(file_type: str, filename: str) -> Union[str, Tuple[str, int]]:
     if not filename:
         abort(400, description="Invalid filename")
     
-    file_path: str = os.path.join(DATA_DIR, f"{file_type}s", filename)
+    directory: str = PROJECTS_DIR if file_type == 'project' else BLOG_DIR
+    file_path: str = os.path.join(directory, filename)
     
     if not os.path.exists(file_path):
         abort(404, description=f"File not found: {filename}")
@@ -421,7 +437,7 @@ def blog_post_content(filename: str) -> Any:
     return jsonify({
         'title': escape(metadata.get('title', '')),
         'date': escape(metadata.get('date', '')),
-        'content': escape(content)
+        'content': content
     })
 
 @app.route('/blog/posts')
@@ -437,7 +453,7 @@ def blog_posts() -> Any:
             metadata, content = get_metadata_and_content(file_path, 'blog')
             all_posts.append({
                 **{k: escape(v) if isinstance(v, str) else v for k, v in metadata.items()},
-                'content': escape(content),
+                'content': content,
                 'filename': escape(filename),
                 'image': escape(metadata.get('image', ''))  # Ensure image is included
             })
@@ -463,7 +479,7 @@ def get_blog_posts():
                 'id': filename[:-3],  # Remove .md extension
                 'title': escape(metadata.get('title', '')),
                 'date': escape(metadata.get('date', '')),
-                'content': escape(content)
+                'content': content
             })
     return sorted(posts, key=lambda x: datetime.strptime(x['date'], DATE_FORMAT), reverse=True)
 
@@ -503,7 +519,7 @@ def rss_feed():
         fe.title(escape(post['title']))
         post_url = url_for('blog_page', filename=f"{post['id']}.md", _external=True)
         fe.link(href=post_url)
-        fe.description(markdown.markdown(escape(post['content'])))  # Full content as description
+        fe.description(post['content'])  # Full content as description
         
         fe.guid(post_url, permalink=True)
         

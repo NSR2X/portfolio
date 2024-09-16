@@ -24,10 +24,16 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 modalTitle.textContent = data.title;
                 modalDate.textContent = data.date;
-                modalContent.innerHTML = data.content;
+                modalContent.innerHTML = data.content; // This line remains the same
                 modal.style.display = 'block';
                 document.body.style.overflow = 'hidden';
                 history.replaceState(null, '', `/blog/${postId}`);
+
+                // Add this: Parse and execute any script tags in the content
+                const scripts = modalContent.getElementsByTagName('script');
+                for (let script of scripts) {
+                    eval(script.innerHTML);
+                }
             })
             .catch(error => {
                 console.error('Error:', error);

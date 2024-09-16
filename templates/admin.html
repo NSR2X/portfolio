@@ -15,9 +15,10 @@
     </li>
     {% endfor %}
 </ul>
-<form action="{{ url_for('add_file', file_type='project') }}" method="post" enctype="multipart/form-data">
-    <input type="file" name="file" accept=".md" required>
-    <button type="submit">Add New Project</button>
+<form method="POST" action="{{ url_for('add_file', file_type='project') }}" enctype="multipart/form-data">
+    {{ form.csrf_token }}
+    {{ form.file.label }} {{ form.file() }}
+    {{ form.submit() }}
 </form>
 
 <h2>Blog Posts</h2>
@@ -30,8 +31,9 @@
     </li>
     {% endfor %}
 </ul>
-<form action="{{ url_for('add_file', file_type='blog') }}" method="post" enctype="multipart/form-data">
-    <input type="file" name="file" accept=".md" required>
-    <button type="submit">Add New Blog Post</button>
+<form method="POST" action="{{ url_for('add_file', file_type='blog') }}" enctype="multipart/form-data">
+    {{ form.csrf_token }}
+    {{ form.file.label }} {{ form.file() }}
+    {{ form.submit() }}
 </form>
 {% endblock %}
