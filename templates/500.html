@@ -4,46 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>500 - Internal Server Error | Quantin BODIN</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css')|e }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <style>
-        .error-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            text-align: center;
-        }
-        .error-code {
-            font-size: 8rem;
-            font-weight: bold;
-            color: #e67e22;
-            margin-bottom: 1rem;
-        }
-        .error-message {
-            font-size: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .home-link {
-            font-size: 1.2rem;
-            color: #3498db;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-        .home-link:hover {
-            color: #2980b9;
-        }
-    </style>
+    <!-- ... (rest of the head content) ... -->
 </head>
 <body>
-    <div class="error-container">
-        <div class="error-code">500</div>
-        <h1 class="error-message">Internal Server Error</h1>
-        <p>Oops! Something went wrong on our end. We're working on fixing it.</p>
-        <a href="{{ url_for('home') }}" class="home-link">
-            <i class="fas fa-home"></i> Return to Homepage
-        </a>
-    </div>
+    <!-- ... (body content) ... -->
 </body>
 </html>

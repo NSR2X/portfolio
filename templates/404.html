@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>404 - Page Not Found | Quantin BODIN</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css')|e }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
         .error-container {
@@ -41,7 +41,7 @@
         <div class="error-code">404</div>
         <h1 class="error-message">Oops! Page Not Found</h1>
         <p>The page you're looking for seems to have vanished into the digital void.</p>
-        <a href="{{ url_for('home') }}" class="home-link">
+        <a href="{{ url_for('home')|e }}" class="home-link">
             <i class="fas fa-home"></i> Return to Homepage
         </a>
     </div>
