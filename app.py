@@ -1,6 +1,8 @@
 import os
 import re
 import logging
+import io
+import validators  # Add this import for URL validation
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Tuple, List, Any, Optional
 
@@ -70,9 +72,36 @@ os.makedirs('data/projects', exist_ok=True)
 os.makedirs('data/blog', exist_ok=True)
 
 def sanitize_filename(filename: str) -> str:
+    # Limit filename length to prevent excessively long filenames
+    max_length = 255
+    filename = filename[:max_length]
     return secure_filename(re.sub(r'[^a-zA-Z0-9_.-]', '', filename))
 
-def get_metadata_and_content(file_path: str) -> Tuple[Dict[str, Any], str]:
+def validate_metadata(metadata: Dict[str, Any], file_type: str) -> bool:
+    required_fields = ['title']
+    if file_type == 'blog':
+        required_fields.append('date')
+    
+    for field in required_fields:
+        if field not in metadata or not metadata[field]:
+            raise ValueError(f"Missing required field: {field}")
+    
+    # Validate date format if present
+    if 'date' in metadata:
+        try:
+            datetime.strptime(metadata['date'], '%Y-%m-%d')
+        except ValueError:
+            raise ValueError("Invalid date format. Expected YYYY-MM-DD")
+    
+    # Validate URLs if present
+    for url_field in ['github', 'website']:
+        if url_field in metadata and metadata[url_field]:
+            if not validators.url(metadata[url_field]):
+                raise ValueError(f"Invalid URL for {url_field}")
+    
+    return True
+
+def get_metadata_and_content(file_path: str, file_type: str) -> Tuple[Dict[str, Any], str]:
     with open(file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
         metadata: Dict[str, Any] = {}
@@ -81,8 +110,16 @@ def get_metadata_and_content(file_path: str) -> Tuple[Dict[str, Any], str]:
             if line.strip() == '---':
                 content_start = i + 1
                 break
-            key, value = line.strip().split(': ', 1)
-            metadata[key] = value
+            try:
+                key, value = line.strip().split(': ', 1)
+                metadata[key] = value
+            except ValueError:
+                # Skip lines that don't conform to the expected format
+                continue
+        
+        if not validate_metadata(metadata, file_type):
+            raise ValueError("Invalid metadata")
+        
         content = ''.join(lines[content_start:])
         
         github_icon = '<i class="fab fa-github"></i>'
@@ -115,12 +152,23 @@ def project_page() -> str:
     for filename in os.listdir(projects_dir):
         if filename.endswith('.md'):
             file_path = os.path.join(projects_dir, filename)
-            metadata, content = get_metadata_and_content(file_path)
-            project = {**metadata, 'content': content, 'filename': filename}
-            if metadata.get('state', '').lower() == 'active':
-                active_projects.append(project)
-            else:
-                other_projects.append(project)
+            try:
+                metadata, content = get_metadata_and_content(file_path, 'project')
+                project = {**metadata, 'content': content, 'filename': filename}
+                if metadata.get('state', '').lower() == 'active':
+                    active_projects.append(project)
+                else:
+                    other_projects.append(project)
+            except ValueError as e:
+                app.logger.error(f"Error processing project file {filename}: {str(e)}")
+                # Optionally, you can add a placeholder project with an error message
+                error_project = {
+                    'title': f"Error in {filename}",
+                    'content': f"There was an error processing this project: {str(e)}",
+                    'filename': filename,
+                    'state': 'error'
+                }
+                other_projects.append(error_project)
     
     active_projects.sort(key=lambda x: x.get('title', '').lower())
     projects = active_projects + other_projects
@@ -138,7 +186,7 @@ def blog_page(filename: Optional[str] = None) -> str:
     for file in os.listdir(blog_dir):
         if file.endswith('.md'):
             file_path = os.path.join(blog_dir, file)
-            metadata, content = get_metadata_and_content(file_path)
+            metadata, content = get_metadata_and_content(file_path, 'blog')
             
             if 'image' not in metadata:
                 metadata['image'] = ''
@@ -157,7 +205,7 @@ def blog_post(filename):
     if not os.path.exists(file_path):
         abort(404)
     
-    metadata, content = get_metadata_and_content(file_path)
+    metadata, content = get_metadata_and_content(file_path, 'blog')
     post = {**metadata, 'content': content, 'filename': filename}
 
     best = request.accept_mimetypes.best_match(['text/html', 'application/json', 'application/rss+xml'])
@@ -199,7 +247,7 @@ def add_file(file_type: str) -> Any:
         abort(400, description="Invalid file type")
     
     file = request.files.get('file')
-    if not file or not file.filename.endswith('.md'):
+    if not file or not file.filename or not file.filename.lower().endswith('.md'):
         abort(400, description="Invalid file or file type")
     
     filename = sanitize_filename(file.filename)
@@ -211,6 +259,13 @@ def add_file(file_type: str) -> Any:
     file_path = os.path.join(directory, filename)
     
     content = file.read().decode('utf-8')
+    
+    try:
+        # Validate metadata
+        metadata, _ = get_metadata_and_content(io.StringIO(content), file_type)
+    except ValueError as e:
+        abort(400, description=str(e))
+    
     sanitized_content = bleach.clean(content, tags=['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'code', 'pre'],
                                      attributes={'a': ['href', 'title'], 'code': ['class'], 'pre': ['class']})
     
@@ -251,6 +306,13 @@ def edit_file(file_type: str, filename: str) -> Any:
 
     if request.method == 'POST':
         content = request.form.get('content', '')
+        
+        try:
+            # Validate metadata
+            metadata, _ = get_metadata_and_content(io.StringIO(content), file_type)
+        except ValueError as e:
+            abort(400, description=str(e))
+        
         sanitized_content = bleach.clean(content, tags=['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'code', 'pre'],
                                          attributes={'a': ['href', 'title'], 'code': ['class'], 'pre': ['class']})
         with open(file_path, 'w', encoding='utf-8') as file:
@@ -272,7 +334,7 @@ def blog_post_content(filename: str) -> Any:
     file_path = os.path.join('data/blog', filename)
     if not os.path.exists(file_path):
         abort(404)
-    metadata, content = get_metadata_and_content(file_path)
+    metadata, content = get_metadata_and_content(file_path, 'blog')
     
     return jsonify({
         'title': metadata.get('title', ''),
@@ -290,7 +352,7 @@ def blog_posts() -> Any:
     for filename in os.listdir(blog_dir):
         if filename.endswith('.md'):
             file_path = os.path.join(blog_dir, filename)
-            metadata, content = get_metadata_and_content(file_path)
+            metadata, content = get_metadata_and_content(file_path, 'blog')
             all_posts.append({
                 **metadata,
                 'content': content,
@@ -315,7 +377,7 @@ def get_blog_posts():
     for filename in os.listdir(blog_dir):
         if filename.endswith('.md'):
             file_path = os.path.join(blog_dir, filename)
-            metadata, content = get_metadata_and_content(file_path)
+            metadata, content = get_metadata_and_content(file_path, 'blog')
             posts.append({
                 'id': filename[:-3],  # Remove .md extension
                 'title': metadata.get('title', ''),

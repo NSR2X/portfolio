@@ -11,4 +11,5 @@ Markdown
 mypy
 python-dotenv
 pytz
+validators
 Werkzeug
