@@ -1,6 +1,4 @@
-# YOUR Portfolio
-
-This is a Flask-based web application for your portfolio, showcasing projects and blog posts.
+Flask-based portfolio, showcasing projects and blog posts, integrating an RSS feed.
 
 ## Features
 
@@ -53,12 +51,13 @@ Elevate your online presence with this feature-rich portfolio solution, designed
 
 ## Usage
 
-- Access the website at `http://localhost:5001`
+- Home page is available at `/`
 - Admin interface is available at `/admin` (login required)
 - Blog posts are available at `/blog`
 - Projects are available at `/projects`
 - RSS feed is available at `/rss`
 - Sitemap is available at `/sitemap.xml`
+- Upload blog posts and projects in markdown format from the admin interface, **if you want them to be available in the RSS feed.**
 
 ## Contributing
 
