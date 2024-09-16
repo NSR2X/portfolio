@@ -15,6 +15,8 @@ from feedgen.feed import FeedGenerator
 from markupsafe import Markup
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.exceptions import HTTPException
+import json  # Add this import at the top of the file with other imports
 
 from flask import Flask, render_template, request, redirect, url_for, abort, jsonify, make_response
 from flask_talisman import Talisman
@@ -102,42 +104,52 @@ def validate_metadata(metadata: Dict[str, Any], file_type: str) -> bool:
     return True
 
 def get_metadata_and_content(file_path: str, file_type: str) -> Tuple[Dict[str, Any], str]:
-    with open(file_path, 'r', encoding='utf-8') as file:
-        lines = file.readlines()
-        metadata: Dict[str, Any] = {}
-        content_start = 0
-        for i, line in enumerate(lines):
-            if line.strip() == '---':
-                content_start = i + 1
-                break
-            try:
-                key, value = line.strip().split(': ', 1)
-                metadata[key] = value
-            except ValueError:
-                # Skip lines that don't conform to the expected format
-                continue
-        
-        if not validate_metadata(metadata, file_type):
-            raise ValueError("Invalid metadata")
-        
-        content = ''.join(lines[content_start:])
-        
-        github_icon = '<i class="fab fa-github"></i>'
-        website_icon = '<i class="fas fa-globe"></i>'
-        
-        if 'github' in metadata:
-            metadata['github'] = Markup(f'<a href="{bleach.clean(metadata["github"], strip=True)}" target="_blank">{github_icon}</a>')
-        if 'website' in metadata:
-            metadata['website'] = Markup(f'<a href="{bleach.clean(metadata["website"], strip=True)}" target="_blank">{website_icon}</a>')
-        
-        metadata.setdefault('image', '')
-        metadata.setdefault('description', '')
-        
-        content = bleach.clean(content, tags=['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'img'],
-                               attributes={'a': ['href', 'title'], 'img': ['src', 'alt', 'loading']})
-        content = content.replace('<img', '<img loading="lazy"')
-        
-        return metadata, markdown.markdown(content)
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            lines = file.readlines()
+            metadata: Dict[str, Any] = {}
+            content_start = 0
+            for i, line in enumerate(lines):
+                if line.strip() == '---':
+                    content_start = i + 1
+                    break
+                try:
+                    key, value = line.strip().split(': ', 1)
+                    metadata[key] = value
+                except ValueError:
+                    # Skip lines that don't conform to the expected format
+                    continue
+            
+            if not validate_metadata(metadata, file_type):
+                raise ValueError("Invalid metadata")
+            
+            content = ''.join(lines[content_start:])
+            
+            github_icon = '<i class="fab fa-github"></i>'
+            website_icon = '<i class="fas fa-globe"></i>'
+            
+            if 'github' in metadata:
+                metadata['github'] = Markup(f'<a href="{bleach.clean(metadata["github"], strip=True)}" target="_blank">{github_icon}</a>')
+            if 'website' in metadata:
+                metadata['website'] = Markup(f'<a href="{bleach.clean(metadata["website"], strip=True)}" target="_blank">{website_icon}</a>')
+            
+            metadata.setdefault('image', '')
+            metadata.setdefault('description', '')
+            
+            content = bleach.clean(content, tags=['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'img'],
+                                   attributes={'a': ['href', 'title'], 'img': ['src', 'alt', 'loading']})
+            content = content.replace('<img', '<img loading="lazy"')
+            
+            return metadata, markdown.markdown(content)
+    except FileNotFoundError:
+        app.logger.error(f"File not found: {file_path}")
+        raise
+    except IOError as e:
+        app.logger.error(f"IO error reading file {file_path}: {str(e)}")
+        raise
+    except Exception as e:
+        app.logger.error(f"Unexpected error processing file {file_path}: {str(e)}")
+        raise
 
 @app.route('/')
 def home() -> str:
@@ -149,31 +161,34 @@ def project_page() -> str:
     active_projects: List[Dict[str, Any]] = []
     other_projects: List[Dict[str, Any]] = []
     projects_dir = 'data/projects'
-    for filename in os.listdir(projects_dir):
-        if filename.endswith('.md'):
-            file_path = os.path.join(projects_dir, filename)
-            try:
-                metadata, content = get_metadata_and_content(file_path, 'project')
-                project = {**metadata, 'content': content, 'filename': filename}
-                if metadata.get('state', '').lower() == 'active':
-                    active_projects.append(project)
-                else:
-                    other_projects.append(project)
-            except ValueError as e:
-                app.logger.error(f"Error processing project file {filename}: {str(e)}")
-                # Optionally, you can add a placeholder project with an error message
-                error_project = {
-                    'title': f"Error in {filename}",
-                    'content': f"There was an error processing this project: {str(e)}",
-                    'filename': filename,
-                    'state': 'error'
-                }
-                other_projects.append(error_project)
-    
-    active_projects.sort(key=lambda x: x.get('title', '').lower())
-    projects = active_projects + other_projects
-    
-    return render_template('projects.html', projects=projects)
+    try:
+        for filename in os.listdir(projects_dir):
+            if filename.endswith('.md'):
+                file_path = os.path.join(projects_dir, filename)
+                try:
+                    metadata, content = get_metadata_and_content(file_path, 'project')
+                    project = {**metadata, 'content': content, 'filename': filename}
+                    if metadata.get('state', '').lower() == 'active':
+                        active_projects.append(project)
+                    else:
+                        other_projects.append(project)
+                except Exception as e:
+                    app.logger.error(f"Error processing project file {filename}: {str(e)}")
+                    error_project = {
+                        'title': f"Error in {filename}",
+                        'content': f"There was an error processing this project: {str(e)}",
+                        'filename': filename,
+                        'state': 'error'
+                    }
+                    other_projects.append(error_project)
+        
+        active_projects.sort(key=lambda x: x.get('title', '').lower())
+        projects = active_projects + other_projects
+        
+        return render_template('projects.html', projects=projects)
+    except Exception as e:
+        app.logger.error(f"Error accessing projects directory: {str(e)}")
+        return render_template('error.html', error="Unable to load projects at this time."), 500
 
 @app.route('/blog')
 @app.route('/blog/<path:filename>')
@@ -258,21 +273,28 @@ def add_file(file_type: str) -> Any:
     os.makedirs(directory, exist_ok=True)
     file_path = os.path.join(directory, filename)
     
-    content = file.read().decode('utf-8')
-    
     try:
+        content = file.read().decode('utf-8')
+        
         # Validate metadata
         metadata, _ = get_metadata_and_content(io.StringIO(content), file_type)
+        
+        sanitized_content = bleach.clean(content, tags=['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'code', 'pre'],
+                                         attributes={'a': ['href', 'title'], 'code': ['class'], 'pre': ['class']})
+        
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(sanitized_content)
+        update_last_build_date()
+        return redirect(url_for('admin'))
     except ValueError as e:
+        app.logger.error(f"Validation error when adding {file_type} file: {str(e)}")
         abort(400, description=str(e))
-    
-    sanitized_content = bleach.clean(content, tags=['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'code', 'pre'],
-                                     attributes={'a': ['href', 'title'], 'code': ['class'], 'pre': ['class']})
-    
-    with open(file_path, 'w', encoding='utf-8') as f:
-        f.write(sanitized_content)
-    update_last_build_date()
-    return redirect(url_for('admin'))
+    except IOError as e:
+        app.logger.error(f"IO error when adding {file_type} file: {str(e)}")
+        abort(500, description="Error saving file")
+    except Exception as e:
+        app.logger.error(f"Unexpected error when adding {file_type} file: {str(e)}")
+        abort(500, description="Unexpected error occurred")
 
 @app.route('/delete/<file_type>/<path:filename>')
 @auth.login_required
@@ -493,6 +515,49 @@ def sitemap():
     except Exception as e:
         logging.error(f"Error generating sitemap: {str(e)}")
         return "Error generating sitemap", 500
+
+@app.errorhandler(HTTPException)
+def handle_exception(e):
+    """Return JSON instead of HTML for HTTP errors."""
+    response = e.get_response()
+    response.data = json.dumps({
+        "code": e.code,
+        "name": e.name,
+        "description": e.description,
+    })
+    response.content_type = "application/json"
+    return response
+
+@app.errorhandler(404)
+def page_not_found(e):
+    """Custom 404 page."""
+    if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
+        response = jsonify({"error": "Not found", "code": 404})
+        response.status_code = 404
+        return response
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    """Custom 500 page."""
+    app.logger.error('An internal error occurred: %s', str(e))
+    if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
+        response = jsonify({"error": "Internal server error", "code": 500})
+        response.status_code = 500
+        return response
+    return render_template('500.html'), 500
+
+@app.errorhandler(Exception)
+def handle_unexpected_error(error):
+    app.logger.error('An unexpected error has occurred: %s', str(error))
+    if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
+        response = jsonify({
+            'error': 'An unexpected error occurred',
+            'description': str(error)
+        })
+        response.status_code = 500
+        return response
+    return render_template('500.html'), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=False)
