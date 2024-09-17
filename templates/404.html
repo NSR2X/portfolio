@@ -3,47 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 - Page Not Found | Quantin BODIN</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css')|e }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <title>Page Not Found - Quantin BODIN</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <style>
         .error-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
             text-align: center;
+            padding: 2rem;
         }
-        .error-code {
-            font-size: 8rem;
-            font-weight: bold;
-            color: #e74c3c;
-            margin-bottom: 1rem;
+
+        .error-container h1 {
+            font-size: 6rem;
+            color: var(--primary-color);
         }
-        .error-message {
+
+        .error-container p {
             font-size: 1.5rem;
-            margin-bottom: 2rem;
+            color: var(--text-color);
         }
-        .home-link {
-            font-size: 1.2rem;
-            color: #3498db;
+
+        .error-container a {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background-color: var(--primary-color);
+            color: white;
             text-decoration: none;
-            transition: color 0.3s ease;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
         }
-        .home-link:hover {
-            color: #2980b9;
+
+        .error-container a:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .error-image {
+            max-width: 100%;
+            height: auto;
+            margin-top: 2rem;
         }
     </style>
 </head>
 <body>
-    <div class="error-container">
-        <div class="error-code">404</div>
-        <h1 class="error-message">Oops! Page Not Found</h1>
-        <p>The page you're looking for seems to have vanished into the digital void.</p>
-        <a href="{{ url_for('home')|e }}" class="home-link">
-            <i class="fas fa-home"></i> Return to Homepage
-        </a>
+    <div class="container" style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+        <main class="error-container">
+            <h1>404</h1>
+            <img src="{{ url_for('static', filename='400-500.gif') }}" alt="404 Image" class="error-image">
+            <p>Oops! The page you're looking for doesn't exist.</p>
+            <a href="{{ url_for('home') }}">Go Back Home</a>
+        </main>
     </div>
 </body>
 </html>
