@@ -11,6 +11,8 @@
     right: 0;
     z-index: 1000;
     transition: all 0.3s ease;
+    display: flex;
+    align-items: center; /* Center vertically */
 }
 
 .sidebar.shrink {
@@ -52,6 +54,10 @@
 }
 
 @media (max-width: 576px) {
+    .sidebar {
+        padding: 0.5rem; /* Reduce height */
+    }
+
     .sidebar nav ul {
         flex-wrap: nowrap;
         overflow-x: auto;
@@ -61,5 +67,9 @@
 
     .sidebar nav ul li {
         flex-shrink: 0;
+    }
+
+    .sidebar nav ul li a i {
+        display: none;
     }
 }
