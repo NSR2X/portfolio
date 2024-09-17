@@ -1,0 +1,8 @@
+/* Add your blog page specific styles here */
+
+.blog-posts {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+}

@@ -1,0 +1,63 @@
+@import 'base/reset.css';
+@import 'base/variables.css';
+@import 'base/typography.css';
+
+@import 'layout/grid.css';
+@import 'layout/responsive.css';
+
+@import 'components/header.css';
+@import 'components/footer.css';
+@import 'components/sidebar.css';
+@import 'components/project-card.css';
+@import 'components/blog-card.css';
+
+@import 'pages/home.css';
+@import 'pages/projects.css';
+@import 'pages/blog.css';
+@import 'pages/resume.css'; /* Ensure resume styles are included */
+
+/* Any remaining global styles can be placed here */
+.container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    overflow-x: hidden;
+}
+
+main {
+    flex-grow: 1;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 80px auto 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+img, video, iframe {
+    max-width: 100%;
+    height: auto;
+}
+
+p {
+    margin-bottom: 1rem;
+}
+
+ul, ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+}
+
+li {
+    margin-bottom: 0.5rem;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}

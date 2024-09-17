@@ -1,0 +1,17 @@
+:root {
+    --primary-color: #ffbe0b;
+    --secondary-color: #fb5607;
+    --text-color: #333333;
+    --background-color: #ffffff;
+    --light-gray: #f7f6f3;
+    --border-color: #e0e0e0;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text-color: #f0f0f0;
+        --background-color: #1a1a1a;
+        --light-gray: #2a2a2a;
+        --border-color: #3a3a3a;
+    }
+}

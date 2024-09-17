@@ -1,0 +1,54 @@
+/* Add your blog card styles here */
+
+.blog-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    background-color: var(--background-color);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.blog-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.blog-card img {
+    width: 100%;
+    height: auto;
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: 3px;
+    margin-bottom: 1rem;
+}
+
+.blog-card h2 {
+    font-size: 2rem;
+    margin: 0 0 1rem 0;
+    color: var(--secondary-color);
+}
+
+.blog-card p {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    color: var(--text-color);
+}
+
+.blog-links {
+    margin-top: auto;
+}
+
+.blog-links a {
+    display: inline-block;
+    margin-right: 10px;
+    font-size: 1.5em;
+    color: var(--secondary-color);
+    transition: color 0.2s ease;
+}
+
+.blog-links a:hover {
+    color: var(--primary-color);
+}
