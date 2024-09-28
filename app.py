@@ -29,6 +29,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from wtforms import TextAreaField, SubmitField
+from markdown.extensions.fenced_code import FencedCodeExtension
 
 # Constants
 DATA_DIR: str = 'data'
@@ -36,7 +37,7 @@ PROJECTS_DIR: str = os.path.join(DATA_DIR, 'projects')
 BLOG_DIR: str = os.path.join(DATA_DIR, 'blog')
 MAX_FILENAME_LENGTH: int = 255
 ALLOWED_FILE_TYPES: List[str] = ['project', 'blog']
-ALLOWED_TAGS: List[str] = ['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'img']
+ALLOWED_TAGS: List[str] = ['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'img', 'blockquote', 'pre', 'code']
 ALLOWED_ATTRIBUTES: Dict[str, List[str]] = {'a': ['href', 'title'], 'img': ['src', 'alt', 'loading']}
 DATE_FORMAT: str = '%Y-%m-%d'
 
@@ -150,10 +151,15 @@ def get_metadata_and_content(file_path: str, file_type: str) -> Tuple[Dict[str, 
             metadata.setdefault('image', '')
             metadata.setdefault('description', '')
             
-            content = bleach.clean(content, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES)
-            content = content.replace('<img', '<img loading="lazy"')
+            # Use markdown with extensions to properly render quotes and code blocks
+            md = markdown.Markdown(extensions=['fenced_code', 'codehilite'])
+            content_html = md.convert(content)
             
-            return metadata, Markup(markdown.markdown(content))
+            # Apply bleach cleaning after Markdown conversion
+            content_html = bleach.clean(content_html, tags=ALLOWED_TAGS + ['blockquote', 'pre', 'code'], attributes=ALLOWED_ATTRIBUTES)
+            content_html = content_html.replace('<img', '<img loading="lazy"')
+            
+            return metadata, Markup(content_html)
     except FileNotFoundError:
         app.logger.error(f"File not found: {file_path}")
         raise
